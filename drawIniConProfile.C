@@ -1,4 +1,4 @@
-void drawIniConProfile(TString funcName="gaus2d",double b = 2.0,double r=7.5) {
+void drawIniConProfile(TString funcName="gaus2dwhotspot",double b = 4.0,double r=7.5) {
  
   gROOT->ProcessLine(Form(".L %s.cpp",funcName.Data()));
   gROOT->ProcessLine(".L loadStyle.C");
@@ -10,11 +10,13 @@ void drawIniConProfile(TString funcName="gaus2d",double b = 2.0,double r=7.5) {
   int npar = sizeof(par)/sizeof(double);
   for(int i=0;i<npar;++i) fIniCon->SetParameter(i,par[i]);
 
-  TCanvas* cc = new TCanvas("cc","Initial Energy Density Transverse Profile",10,10,1200,600);
-  cc->Divide(2,1,0.0001,0.0001);
-  cc->cd(2);
-  cc->cd(2)->SetGridx();
-  cc->cd(2)->SetGridy();
+  TCanvas* c1 = new TCanvas("c1","Initial Energy Density Transverse Profile",10,10,600,600);
+  c1->SetGridx();
+  c1->SetGridy();
+  fIniCon->SetNpx(70);
+  fIniCon->SetNpy(70);
+  fIniCon->SetLineColor(1);
+  fIniCon->SetLineWidth(1);
   fIniCon->GetXaxis()->SetTitle("x [fm]");
   fIniCon->GetXaxis()->SetTitleOffset(2.0);
   fIniCon->GetXaxis()->CenterTitle(true);
@@ -26,7 +28,7 @@ void drawIniConProfile(TString funcName="gaus2d",double b = 2.0,double r=7.5) {
   fIniCon->GetZaxis()->SetNdivisions(310);
   fIniCon->Draw("contz");
 
-  cc->cd(1);
+  TCanvas* c2 = new TCanvas("c2","Initial Energy Density Transverse Profile",600,10,600,600);
   fIniCon->Draw("surf1fb");
 
 }
