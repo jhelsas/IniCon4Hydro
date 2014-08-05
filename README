@@ -1,0 +1,6 @@
+Initial Condition Generator for Hydro
+
+- gaus2d.cpp: simple smooth profile
+
+- drawIniConProfile: draw 2D plot of the initial
+  condition profile (needs ROOT libraries)
