@@ -19,7 +19,7 @@ using namespace std;
  
 int main(){
   const int D=2;
-  int err,l,Nsplit=1<<D;
+  int err,l,Nsplit=1<<D; // 1 << D = 2^D = potências de 2
   double cutoff=0.001;
   double xi[D],xf[D],p[5];
   
