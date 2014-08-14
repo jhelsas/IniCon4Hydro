@@ -100,10 +100,21 @@ int triangle_midpoint_split(int D,vector <domain> & dom,int n);
  *  Utility Functions  
  * 
  *  Usefull but not essential for the functioning of the
- *   library. Mainly to facilitatethe init functions.
+ *   library. Init and check/print functions
  * 
  **************************************************************/
  
 int unit_hexagon(int Ntri,int D,double *xv);
 
 int unit2_hexagon(int Ntri,int D,double *xv);
+
+int create_grid(int D,double **xpo,double *xl,double *xu,
+                double *dx,int *Np);
+                
+int sph_read(char* filename,int *Dout,int *Nout,double **x,double **u,double **S);
+
+double w_bspline(double r,double h);
+
+int sph_dens(int D,int N,int Npoints,double *xp,double *x,
+             double *S,double h,double xl[],double xu[],
+             double (*tf)(double*,size_t,void*),char* filename,void *p);

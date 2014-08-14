@@ -2,7 +2,6 @@
 #include <fstream>
 #include <cstdlib>
 #include <cmath>
-#include "trial-functions.h"
 #include "splitandfit.h"
 #include <string.h>
 #include <vector>
@@ -14,6 +13,8 @@
 #include <gsl/gsl_monte_vegas.h>
 
 using namespace std;
+
+#define _USE_MATH_DEFINES
 
 /*
  * Arquivo de implementação das rotinas de divisão e fit
@@ -323,12 +324,14 @@ int clean_domain(vector <domain> &dom){
 }
 
 int print_sph(int D,const char *filename,vector <domain> &dom){
-  int j,l,it=0;
+  int j,l,it=0,N;
   ofstream sphfile;
   vector <domain> :: iterator el;
   if(D<=0 || filename==NULL || dom.size()==0)
     return 1;
+  N=dom.size();
   sphfile.open(filename);
+  sphfile << D << "  " << N << endl;
   for(el=dom.begin();el!=dom.end();el++){
     if(el->type==0){
       for(l=0;l<D;l+=1) 
@@ -724,3 +727,134 @@ int unit2_hexagon(int Ntri,int D,double *xv){
   
   return 0;
 }
+
+
+int create_grid(int D,double **xpo,double *xl,double *xu,
+                double *dx,int *Np){
+  double *xp;
+  if(D<=0)
+    return -1;
+  else if(D==1){
+    int i,Nx;
+    Nx=(int)((xu[0]-xl[0])/dx[0]);
+    xp=new double [Nx*D];
+    for(i=0;i<Nx;i+=1)
+        xp[i*D+0] = xl[0]+((double)i)*(dx[0]);
+    *Np=Nx;
+  }
+  else if(D==2){
+    int k,i,j,Nx,Ny;
+    Nx=(int)((xu[0]-xl[0])/dx[0]);
+    Ny=(int)((xu[1]-xl[1])/dx[1]);
+    xp=new double [Nx*Ny*D];
+        
+    for(j=0;j<Ny;j+=1)
+      for(i=0;i<Nx;i+=1){
+        xp[(j*Nx+i)*D+0] = xl[0]+((double)i)*(dx[0]);
+        xp[(j*Nx+i)*D+1] = xl[1]+((double)j)*(dx[1]);
+      }
+    
+    *Np=Nx*Ny;
+  }
+  else if(D==3){
+    int i,j,k,Nx,Ny,Nz;
+    Nx=(int)((xu[0]-xl[0])/dx[0]);
+    Ny=(int)((xu[1]-xl[1])/dx[1]);
+    Nz=(int)((xu[2]-xl[2])/dx[2]);
+    xp=new double [Nx*Ny*Nz*D];
+    for(k=0;k<Nz;k+=1)
+      for(j=0;j<Ny;j+=1)
+        for(i=0;i<Nx;i+=1){
+          xp[((k*Ny+j)*Nx+i)*D+0] = xl[0]+((double)i)*(dx[0]);
+          xp[((k*Ny+j)*Nx+i)*D+1] = xl[1]+((double)j)*(dx[1]);
+          xp[((k*Ny+j)*Nx+i)*D+2] = xl[2]+((double)k)*(dx[2]);
+        }
+      
+    *Np=Nx*Ny*Nz;
+  }
+  *xpo=xp;
+  return 0;
+}
+
+int sph_read(char* filename,int *Dout,int *Nout,double **xout,double **uout,double **Sout){
+  int i,l,D,N;
+  double *x,*u,*S;
+  ifstream sphfile;
+  
+  sphfile.open(filename);
+  sphfile >> D >> N;
+  *Dout=D;
+  *Nout=N;
+  x=new double [N*D];
+  u=new double [N*D];
+  S=new double [N];
+  for(i=0;i<N;i+=1){
+    for(l=0;l<D;l+=1)
+      sphfile >> x[i*D+l];
+    for(l=0;l<D;l+=1)
+      sphfile >> u[i*D+l];
+    sphfile >> S[i];
+  }
+  sphfile.close();
+  *xout=x;
+  *uout=u;
+  *Sout=S;
+  
+  return 0;
+}
+
+#define DIM 2
+
+//#define A_d 1.  
+ #define A_d (15.)/(7.*M_PI) 
+// #define A_d (3.0)/(2.0*MYPI) 
+
+double w_bspline(double r,double h)
+{
+	double R;
+	if(h<=0.) exit(10);
+	R=fabs(r)/h;
+	if(R>=2.)
+		return 0;
+	else if((1.<=R)&&(R<2.))
+		return (A_d)*(1./6.)*(2.-R)*(2.-R)*(2.-R)/pow(h,DIM);
+	else
+		return ((A_d)*((2./3.)-(R*R) + (R*R*R/2.0)))/pow(h,DIM);
+}
+
+int sph_dens(int D,int N,int Npoints,double *xp,double *x,
+             double *S,double h,double xl[],double xu[],
+             double (*tf)(double*,size_t,void*),char* filename,void *p){
+  int k,i,l,err;
+  double a,s,dist;
+  vector <domain> dom;
+  wparams par;void *downp;
+  ofstream plotfile;
+  if(D<=0)
+    return -1;
+  
+  par.p=p;  
+  err=init_cube(xl,xu,dom,D);if(err!=0) return err; 
+  par.mdel=&(dom[0]);
+  
+  plotfile.open(filename);
+  for(k=0;k<Npoints;k+=1){
+    s=0.;
+    for(i=0;i<N;i+=1){
+      dist=0.;
+      for(l=0;l<D;l+=1)
+        dist+=(xp[k*D+l]-x[i*D+l])*(xp[k*D+l]-x[i*D+l]);
+      dist=sqrt(dist);
+      
+      s+=S[i]*w_bspline(dist,h);
+    }
+    a=tf(xp+k*D,D,&par);
+    for(l=0;l<D;l+=1)
+      plotfile << xp[k*D+l] << " ";
+    plotfile << s << " " << a << "\n";
+  }
+  plotfile.close();
+  
+  return 0;
+}
+

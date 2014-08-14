@@ -2,12 +2,10 @@
 #include <fstream>
 #include <cstdlib>
 #include <cmath>
-#include "splitandfit.h"
-#include "trial-functions.h"
 #include <string.h>
 #include <vector>
-
-#define _USE_MATH_DEFINES
+#include "splitandfit.h"
+#include "trial-functions.h"
 
 using namespace std;
 
@@ -61,7 +59,7 @@ using namespace std;
  * 
  * Um dado triangulo é caracterizado por
  * 
- *                 (xv[2],x[3])
+ *                 (x[2],x[3])
  *                      /\
  *                     /  \
  *                    /    \
@@ -143,9 +141,9 @@ int main(int argc,char **argv){
   
   p[0]=1.; p[1]=0.; p[2]=0.;
   p[3]=.5; p[4]=.5;
-  //F.f = winicon; F.dim=D;par.p=(void*)p;F.params=(void*)&par
+  F.f = winicon; F.dim=D;par.p=(void*)p;F.params=(void*)&par;
   //F.f = &fd; F.dim=D;par.p=NULL;F.params=(void*)&par;
-  F.f = &tkgauss; F.dim=D;par.p=NULL;F.params=&par;
+  //F.f = &tkgauss; F.dim=D;par.p=NULL;F.params=&par;
   
   if(split_type==0){
     cout << "init\n";
