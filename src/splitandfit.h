@@ -12,12 +12,6 @@
 
 using namespace std;
  
-/*
- * type = 0 : D dimensional cubic domain
- * type = 1 : 2 dimensional triangular domain
- * type = 2 : 3 dimensional tetraedric domain
- */
- 
 class domain{
   public:
     int D,Nv,type,good;
