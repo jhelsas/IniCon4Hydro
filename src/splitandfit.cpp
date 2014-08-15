@@ -827,6 +827,7 @@ int sph_dens(int D,int N,int Npoints,double *xp,double *x,
              double (*tf)(double*,size_t,void*),char* filename,void *p){
   int k,i,l,err;
   double a,s,dist;
+  double cutoff = 0.05;
   vector <domain> dom;
   wparams par;void *downp;
   ofstream plotfile;
@@ -851,10 +852,13 @@ int sph_dens(int D,int N,int Npoints,double *xp,double *x,
     a=tf(xp+k*D,D,&par);
     for(l=0;l<D;l+=1)
       plotfile << xp[k*D+l] << " ";
-    plotfile << s << " " << a << "\n";
+    plotfile << s << " " << a << " ";
+    if(a>cutoff)
+      plotfile << ((s-a)/a) << "\n";
+    else
+      plotfile << 2.0*((s-a)/(a+cutoff)) << "\n";
   }
   plotfile.close();
   
   return 0;
 }
-

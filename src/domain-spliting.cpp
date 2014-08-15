@@ -134,20 +134,21 @@ double tkgauss(double x[],size_t dim,void *par){
 int main(int argc,char **argv){
   const int D=2,Ntri=6,split_type=0;
   int err,l; 
-  double cutoff=0.001,xi[D],xf[D],p[5],xv[Ntri*(D+1)*D];
+  double cutoff=0.001,xi[D],xf[D],p[12],xv[Ntri*(D+1)*D];
   wparams par;
   vector <domain> dom;
   gsl_monte_function F;
   
   p[0]=1.; p[1]=0.; p[2]=0.;
-  p[3]=.5; p[4]=.5;
-  F.f = winicon; F.dim=D;par.p=(void*)p;F.params=(void*)&par;
+  p[3]=1.; p[4]=1.; p[5]=1./25.; p[6]=1.;  
+  p[7]=2.; p[8]=0.2; p[9]=0.2; p[10]=1.; p[11]=1.;
+  F.f = woodsaxon_whotspot; F.dim=D;par.p=(void*)p;F.params=(void*)&par;
   //F.f = &fd; F.dim=D;par.p=NULL;F.params=(void*)&par;
   //F.f = &tkgauss; F.dim=D;par.p=NULL;F.params=&par;
   
   if(split_type==0){
     cout << "init\n";
-    for(l=0;l<D;l+=1){xi[l]=-1.;xf[l]=1.;}  
+    for(l=0;l<D;l+=1){xi[l]=-2.;xf[l]=2.;}  
     err=init_cube(xi,xf,dom,D);if(err!=0) return err; 
   }
   else if(split_type==1){
