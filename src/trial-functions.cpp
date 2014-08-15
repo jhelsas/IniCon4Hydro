@@ -120,6 +120,16 @@ double woodsaxon(double x[],size_t dim,void *par){
   return A/(1.0+exp(a*(r-R)));
 }
 
+/*
+ * Essas Funções tem que estar muito otimizadas, 
+ * portanto não é bom utilizar muitos parâmetros externos com elas.
+ * 
+ * A exemplo, a função abaixo do jeito que está rodou em 4m30 na minha
+ * máquina com cutoff de 0.001 e cubic fit a partir de [-2,2]x[-2,2]
+ * mas com todos os parâmetros vindo de fora, rodoun em 26m12, portanto
+ * um fator de pelo menos 6x
+ */
+
 double woodsaxon_whotspot(double x[],size_t dim,void *par){
   int err;
   wparams *lpar=(wparams*)par;
@@ -137,23 +147,22 @@ double woodsaxon_whotspot(double x[],size_t dim,void *par){
   double r=0.,r2hs=0.;
   double *p = (double*)(lpar->p);
   
-  /*
+  
   double    Aws = p[0];double    Ahs = p[7];
   double   x0ws = p[1];double   x0hs = p[8];
   double   y0ws = p[2];double   y0hs = p[9];
   double sigxws = p[3];double sigxhs = p[10];
   double sigyws = p[4];double sigyhs = p[11];
   double    aws = p[5];
-  double    Rws = p[6];*/
-   
-   
-  const double    Aws = 1.;const double    Ahs = 2.;
-  const double   x0ws = 0.;const double   x0hs = .4;
-  const double   y0ws = 0.;const double   y0hs = .4;
-  const double sigxws = 1.;const double sigxhs = .1;
-  const double sigyws = 1.;const double sigyhs = .1;
-  const double    aws = .04;
-  const double    Rws = 1.;
+  double    Rws = p[6];
+  
+  //const double    Aws = 1.;const double    Ahs = 2.;
+  //const double   x0ws = 0.;const double   x0hs = .4;
+  //const double   y0ws = 0.;const double   y0hs = .4;
+  //const double sigxws = 1.;const double sigxhs = .1;
+  //const double sigyws = 1.;const double sigyhs = .1;
+  //const double    aws = .04;
+  //const double    Rws = 1.;
    
   r=sqrt( ((x[0]-x0ws)/sigxws)*((x[0]-x0ws)/sigxws) + ((x[1]-y0ws)/sigyws)*((x[1]-y0ws)/sigyws) ) ;
   r2hs= ((x[0]-x0hs)/sigxhs)*((x[0]-x0hs)/sigxhs) + ((x[1]-y0hs)/sigyhs)*((x[1]-y0hs)/sigyhs);
