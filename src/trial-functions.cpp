@@ -120,16 +120,6 @@ double woodsaxon(double x[],size_t dim,void *par){
   return A/(1.0+exp(a*(r-R)));
 }
 
-/*
- * Essas Funções tem que estar muito otimizadas, 
- * portanto não é bom utilizar muitos parâmetros externos com elas.
- * 
- * A exemplo, a função abaixo do jeito que está rodou em 4m30 na minha
- * máquina com cutoff de 0.001 e cubic fit a partir de [-2,2]x[-2,2]
- * mas com todos os parâmetros vindo de fora, rodoun em 26m12, portanto
- * um fator de pelo menos 6x
- */
-
 double woodsaxon_whotspot(double x[],size_t dim,void *par){
   int err;
   wparams *lpar=(wparams*)par;
