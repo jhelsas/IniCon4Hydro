@@ -136,8 +136,7 @@ double woodsaxon_whotspot(double x[],size_t dim,void *par){
   int l;
   double r=0.,r2hs=0.;
   double *p = (double*)(lpar->p);
-  
-  
+    
   double    Aws = p[0];double    Ahs = p[7];
   double   x0ws = p[1];double   x0hs = p[8];
   double   y0ws = p[2];double   y0hs = p[9];
@@ -150,4 +149,46 @@ double woodsaxon_whotspot(double x[],size_t dim,void *par){
   r2hs= ((x[0]-x0hs)/sigxhs)*((x[0]-x0hs)/sigxhs) + ((x[1]-y0hs)/sigyhs)*((x[1]-y0hs)/sigyhs);
   
   return Aws/(1.0+gsl_sf_exp((r-Rws)/aws)) + Ahs*gsl_sf_exp(-0.5*r2hs);
+}
+
+double gubser_entropy(double x[],size_t dim,void *par){
+  int err;
+  wparams *lpar=(wparams*)par;
+  
+  err=check_inside(x,dim,lpar->mdel);
+  if(err!=0)
+    return 0.;
+  
+  if(dim != 2) {
+    fprintf(stderr, "error: dim != 2");
+    abort();
+  }
+  double *p = (double*)(lpar->p);
+  double s0=p[0], q=p[1],tau=p[2];
+  double r2,lambda;
+  r2=x[0]*x[0]+x[1]*x[1];
+  lambda = 1.+2.*q*q*(tau*tau+r2) + q*q*q*q*(tau*tau-r2)*(tau*tau-r2);
+  
+  return (s0*(2.*q)*(2.*q))/(tau*lambda);
+  
+}
+
+int gubser_velocity(double x[],size_t dim,void *par,double *u){
+  if(dim!=2)
+    return 1;
+  
+  double *p = (double*)(lpar->p);
+  double s0=p[0], q=p[1],tau=p[2];
+  double r2,lambda;
+  lambda = 1.+2.*q*q*(tau*tau+r2) + q*q*q*q*(tau*tau-r2)*(tau*tau-r2);
+  
+  if(r2<=0){
+    u[0]=0.;u[1]=0.;
+    return 0;
+  }
+  
+  u[0]=x[0]/(sqrt(lambda*r2));
+  u[1]=x[1]/(sqrt(lambda*r2));
+  
+  return 0;
 }
