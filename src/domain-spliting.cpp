@@ -134,21 +134,27 @@ double tkgauss(double x[],size_t dim,void *par){
 int main(int argc,char **argv){
   const int D=2,Ntri=6,split_type=0;
   int err,l; 
-  double cutoff=0.001,xi[D],xf[D],p[12],xv[Ntri*(D+1)*D];
+  double cutoff=0.01,xi[D],xf[D],p[3],xv[Ntri*(D+1)*D];
   wparams par;
   vector <domain> dom;
   gsl_monte_function F;
   
-  p[0]=1.; p[1]=0.; p[2]=0.;
-  p[3]=1.; p[4]=1.; p[5]=1./25.; p[6]=1.;  
-  p[7]=0.; p[8]=0.4; p[9]=0.4; p[10]=.1; p[11]=.1;
-  F.f = woodsaxon_whotspot; F.dim=D;par.p=(void*)p;F.params=(void*)&par;
+  //p[0]=1.; p[1]=0.; p[2]=0.;
+  //p[3]=1.; p[4]=1.; p[5]=1./25.; p[6]=1.;  
+  //p[7]=0.; p[8]=0.4; p[9]=0.4; p[10]=.1; p[11]=.1;
+  //F.f = woodsaxon_whotspot; F.dim=D;par.p=(void*)p;F.params=(void*)&par;
+  
   //F.f = &fd; F.dim=D;par.p=NULL;F.params=(void*)&par;
   //F.f = &tkgauss; F.dim=D;par.p=NULL;F.params=&par;
   
+  p[0]=1.0; /*  s0 */ 
+  p[1]=1.0; /*  q  */
+  p[2]=1.0; /* tau */ 
+  F.f= gubser_entropy; F.dim=D;par.p=(void*)p;F.params=(void*)&par;
+  
   if(split_type==0){
     cout << "init\n";
-    for(l=0;l<D;l+=1){xi[l]=-2.;xf[l]=2.;}  
+    for(l=0;l<D;l+=1){xi[l]=-3.;xf[l]=3.;}  
     err=init_cube(xi,xf,dom,D);if(err!=0) return err; 
   }
   else if(split_type==1){
@@ -166,7 +172,8 @@ int main(int argc,char **argv){
   err=clean_domain(dom);if(err!=0) return err;
   
   cout << "print\n";  
-  err=print_sph(D,"SPH-particles.dat",dom); if(err!=0) return err;
+  //err=print_sph(D,"SPH-particles.dat",dom); if(err!=0) return err;
+  err=print_moving_sph(D,"SPH-particles.dat",dom,gubser_velocity,&par); if(err!=0) return err;
   
   return 0;
 }

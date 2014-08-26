@@ -151,6 +151,14 @@ double woodsaxon_whotspot(double x[],size_t dim,void *par){
   return Aws/(1.0+gsl_sf_exp((r-Rws)/aws)) + Ahs*gsl_sf_exp(-0.5*r2hs);
 }
 
+int null_velocity(double x[],size_t dim,void *par,double *u){
+  int l;
+  for(l=0;l<dim;l+=1)
+    u[l]=0.;
+  
+  return 0;
+}
+
 double gubser_entropy(double x[],size_t dim,void *par){
   int err;
   wparams *lpar=(wparams*)par;
@@ -176,7 +184,9 @@ double gubser_entropy(double x[],size_t dim,void *par){
 int gubser_velocity(double x[],size_t dim,void *par,double *u){
   if(dim!=2)
     return 1;
-  
+    
+  int err;
+  wparams *lpar=(wparams*)par;
   double *p = (double*)(lpar->p);
   double s0=p[0], q=p[1],tau=p[2];
   double r2,lambda;
