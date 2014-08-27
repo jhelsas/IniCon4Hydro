@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cmath>
 #include "splitandfit.h"
+#include "trial-functions.h"
 #include <string.h>
 #include <vector>
 #include <gsl/gsl_math.h>
@@ -359,10 +360,11 @@ int print_sph(int D,const char *filename,vector <domain> &dom){
 }
 
 int print_moving_sph(int D,const char *filename,vector <domain> &dom,
-                    int (*velocity)(double [],size_t,void *,double *),
+                    int (*velocity)(double *,size_t,void *,double *),
                     void *par)
 {
   int err=0,j,l,it=0,N;
+  double x[D],u[D];
   ofstream sphfile;
   vector <domain> :: iterator el;
   if(D<=0 || filename==NULL || dom.size()==0)
@@ -372,13 +374,12 @@ int print_moving_sph(int D,const char *filename,vector <domain> &dom,
   sphfile << D << "  " << N << endl;
   for(el=dom.begin();el!=dom.end();el++){
     if(el->type==0){
-      for(l=0;l<D;l+=1) 
-        sphfile << (el->xv[D*0+l]+el->xv[D*((1<<D)-1)+l])/2. << " ";
-      for(l=0;l<D;l+=1) 
-        sphfile << 0. << " ";
+      for(l=0;l<D;l+=1){ 
+        x[l] = (el->xv[D*0+l]+el->xv[D*((1<<D)-1)+l])/2.;
+        sphfile << x[l] << " ";
+      }
     }
     else{
-      double x[D],u[D];
       for(l=0;l<D;l+=1){
         x[l]=0.;
         for(j=0;j<el->Nv;j+=1)
@@ -386,10 +387,10 @@ int print_moving_sph(int D,const char *filename,vector <domain> &dom,
         x[l]=x[l]/(el->Nv);
         sphfile << x[l] << " ";
       }
-      err=velocity(x,D,par,u);
-      for(l=0;l<D;l+=1){
-        sphfile << u[l] << " ";
-      }
+    }
+    err=velocity(x,D,par,u);
+    for(l=0;l<D;l+=1){
+      sphfile << u[l] << " ";
     }
     sphfile << el->S <<"\n";
     it++;
