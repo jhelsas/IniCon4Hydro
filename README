@@ -18,6 +18,9 @@ Initial Condition Generator for Hydro
 
 - sph-dens .cpp: Ploting Program, to check quality of fit from splitandfit library
 
+- example .cpp: Example program of how to use the splitandfit library, 
+                tutorial of how to use the progam included on the comments
+
 - gaus2d.cpp: simple smooth profile
 
 - drawIniConProfile: draw 2D plot of the initial
