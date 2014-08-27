@@ -159,7 +159,30 @@ int null_velocity(double *x,size_t dim,void *par,double *u){
   return 0;
 }
 
+
 double gubser_entropy(double *x,size_t dim,void *par){
+  int err;
+  wparams *lpar=(wparams*)par;
+  
+  err=check_inside(x,dim,lpar->mdel);
+  if(err!=0)
+    return 0.;
+  
+  if(dim != 2) {
+    fprintf(stderr, "error: dim != 2");
+    abort();
+  }
+  double *p = (double*)(lpar->p);
+  double s0=p[0], q=p[1],tau=p[2];
+  double r2,lambda;
+  r2=x[0]*x[0]+x[1]*x[1];
+  lambda = 1.+2.*q*q*(tau*tau+r2) + q*q*q*q*(tau*tau-r2)*(tau*tau-r2);
+  
+  return (s0*(2.*q)*(2.*q)*(1.+q*q*(tau*tau+r2)))/(lambda*sqrt(lambda));
+  
+}
+
+double gubser_proper_entropy(double *x,size_t dim,void *par){
   int err;
   wparams *lpar=(wparams*)par;
   

@@ -30,7 +30,7 @@ int main(int argc,char **argv){
   
   if(split_type==0){
     cout << "init\n";
-    for(l=0;l<D;l+=1){xi[l]=-3.;xf[l]=3.;}  
+    for(l=0;l<D;l+=1){xi[l]=-3.;xf[l]=3.;}
     err=init_cube(xi,xf,dom,D);if(err!=0) return err; 
   }
   else if(split_type==1){

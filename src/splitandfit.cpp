@@ -771,7 +771,6 @@ int unit2_hexagon(int Ntri,int D,double *xv){
   return 0;
 }
 
-
 int create_grid(int D,double **xpo,double *xl,double *xu,
                 double *dx,int *Np){
   double *xp;
