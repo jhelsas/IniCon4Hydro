@@ -143,8 +143,6 @@ int main(int argc,char **argv){
   p[3]=1.; p[4]=1.; p[5]=1./25.; p[6]=1.;  
   p[7]=0.; p[8]=0.4; p[9]=0.4; p[10]=.1; p[11]=.1;
   F.f = woodsaxon_whotspot; F.dim=D;par.p=(void*)p;F.params=(void*)&par;
-  //F.f = &fd; F.dim=D;par.p=NULL;F.params=(void*)&par;
-  //F.f = &tkgauss; F.dim=D;par.p=NULL;F.params=&par;
   
   if(split_type==0){
     cout << "init\n";
