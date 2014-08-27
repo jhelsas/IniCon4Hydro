@@ -68,6 +68,10 @@ int clean_domain(vector <domain> &dom);
 
 int print_sph(int D,const char *filename,vector <domain> &dom);
 
+int print_moving_sph(int D,const char *filename,vector <domain> &dom,
+                    int (*velocity)(double *,size_t,void *,double *),
+                    void *par);
+
 /*
  * Internal Functions
  */
