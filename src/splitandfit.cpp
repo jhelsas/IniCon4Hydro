@@ -264,7 +264,7 @@ int domain_split(int D,double cutoff,vector <domain>& dom, gsl_monte_function F)
     else{
       for(l=0;l<D;l+=1){
         xl[l]=100000.;
-        xu[l]=-10000.;
+        xu[l]=-100000.;
         for(i=0;i<(dom[id].Nv);i+=1){
           if(dom[id].xv[D*i+l] < xl[l])
             xl[l] = dom[id].xv[D*i+l];
@@ -334,6 +334,7 @@ int print_sph(int D,const char *filename,vector <domain> &dom){
   sphfile.open(filename);
   sphfile << D << "  " << N << endl;
   for(el=dom.begin();el!=dom.end();el++){
+    sphfile << 1.0 << " " << 1.0 << " " << el->S << "\n";
     if(el->type==0){
       for(l=0;l<D;l+=1) 
         sphfile << (el->xv[D*0+l]+el->xv[D*((1<<D)-1)+l])/2. << " ";
@@ -352,7 +353,7 @@ int print_sph(int D,const char *filename,vector <domain> &dom){
       for(l=0;l<D;l+=1)
         sphfile << 0. << " ";
     }
-    sphfile << el->S <<"\n";
+    sphfile <<"\n";
     it++;
   }
   sphfile.close();
@@ -373,6 +374,7 @@ int print_moving_sph(int D,const char *filename,vector <domain> &dom,
   sphfile.open(filename);
   sphfile << D << "  " << N << endl;
   for(el=dom.begin();el!=dom.end();el++){
+    sphfile << 1.0 << " " << 1.0 << " " << el->S << " ";
     if(el->type==0){
       for(l=0;l<D;l+=1){ 
         x[l] = (el->xv[D*0+l]+el->xv[D*((1<<D)-1)+l])/2.;
@@ -392,7 +394,7 @@ int print_moving_sph(int D,const char *filename,vector <domain> &dom,
     for(l=0;l<D;l+=1){
       sphfile << u[l] << " ";
     }
-    sphfile << el->S <<"\n";
+    sphfile << "\n";
     it++;
   }
   sphfile.close();
@@ -819,7 +821,7 @@ int create_grid(int D,double **xpo,double *xl,double *xu,
 
 int sph_read(char* filename,int *Dout,int *Nout,double **xout,double **uout,double **Sout){
   int i,l,D,N;
-  double *x,*u,*S;
+  double ni,q,*x,*u,*S;
   ifstream sphfile;
   
   sphfile.open(filename);
@@ -830,11 +832,13 @@ int sph_read(char* filename,int *Dout,int *Nout,double **xout,double **uout,doub
   u=new double [N*D];
   S=new double [N];
   for(i=0;i<N;i+=1){
+    sphfile >> ni;
+    sphfile >> q;
+    sphfile >> S[i];
     for(l=0;l<D;l+=1)
       sphfile >> x[i*D+l];
     for(l=0;l<D;l+=1)
       sphfile >> u[i*D+l];
-    sphfile >> S[i];
   }
   sphfile.close();
   *xout=x;
