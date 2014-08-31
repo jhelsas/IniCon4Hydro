@@ -215,14 +215,9 @@ int gubser_velocity(double *x,size_t dim,void *par,double *u){
   double r2,lambda;
   r2=x[0]*x[0]+x[1]*x[1];
   lambda = 1.+2.*q*q*(tau*tau+r2) + q*q*q*q*(tau*tau-r2)*(tau*tau-r2);
-  
-  if(r2<=0){
-    u[0]=0.;u[1]=0.;
-    return 0;
-  }
-  
-  u[0]=x[0]/(sqrt(lambda*r2));
-  u[1]=x[1]/(sqrt(lambda*r2));
+    
+  u[0]=(2.*q*q*tau*x[0])/(sqrt(lambda));
+  u[1]=(2.*q*q*tau*x[1])/(sqrt(lambda));
   
   return 0;
 }
