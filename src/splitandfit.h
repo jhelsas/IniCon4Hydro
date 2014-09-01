@@ -16,7 +16,6 @@ class domain{
   public:
     int D,Nv,type,good;
     vector <double> xv; 
-    //static vector<domain> domains; // -> to be used in a future update
     double S;
   
     int init(int,int,int);
