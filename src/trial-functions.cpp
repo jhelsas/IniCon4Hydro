@@ -159,7 +159,6 @@ int null_velocity(double *x,size_t dim,void *par,double *u){
   return 0;
 }
 
-
 double gubser_entropy(double *x,size_t dim,void *par){
   int err;
   wparams *lpar=(wparams*)par;

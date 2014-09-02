@@ -18,7 +18,7 @@ using namespace std;
 int main(int argc,char **argv){
   const int D=2,Ntri=6,split_type=0;
   int err,l; 
-  double cutoff=0.001,xi[D],xf[D],p[3],xv[Ntri*(D+1)*D];
+  double cutoff=0.0002,xi[D],xf[D],p[3],xv[Ntri*(D+1)*D];
   wparams par;
   vector <domain> dom;
   gsl_monte_function F;

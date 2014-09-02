@@ -274,16 +274,12 @@ int domain_split(int D,double cutoff,vector <domain>& dom, gsl_monte_function F)
       }
     }
     
-    gsl_monte_miser_integrate(&F,xl,xu,D,calls,r,s_m,&S,&erd);
-    //if(erd>cutoff*0.01){
-    //  gsl_monte_miser_integrate(&F,xl,xu,D,calls,r,s_m,&S,&erd);
-    //}
-    /*else{
-      if(erd>cutoff/10.){
-	    gsl_monte_miser_integrate(&F,xl,xu,D,mcalls,r,s_m,&S,&erd);
-	  }
-	}
-    dom[id].S=S;*/
+    gsl_monte_miser_integrate(&F,xl,xu,D,scalls,r,s_m,&S,&erd);
+    if(erd>cutoff*0.01){
+      gsl_monte_miser_integrate(&F,xl,xu,D,calls,r,s_m,&S,&erd);
+    }
+    
+    dom[id].S=S;
     
     if(S > cutoff){
       dom[id].good=1;
