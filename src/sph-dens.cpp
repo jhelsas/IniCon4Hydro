@@ -12,7 +12,7 @@ using namespace std;
 
 #define _USE_MATH_DEFINES
 
-int main(){
+int main(int argc,char **argv){
   int N=0,D=0;
   int i,j,k,l,err,Npoints;
   double p[3];
@@ -27,7 +27,8 @@ int main(){
   
   h=0.1;    
     
-  err=sph_read("gubser6.dat",&D,&N,&x,&u,&S);if(err!=0) return err;
+  err=sph_read(argv[1],&D,&N,&x,&u,&S);if(err!=0) return err;
+
   double xl[D],xu[D],dx[D];
   for(l=0;l<D;l+=1){xl[l]=-3.0;dx[l]=0.15;xu[l]=3.0+1.01*dx[l];}
   
