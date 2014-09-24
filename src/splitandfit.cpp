@@ -871,7 +871,8 @@ double w_bspline(double r,double h)
 
 int sph_dens(int D,int N,int Npoints,double *xp,double *x,
              double *S,double h,double xl[],double xu[],
-             double (*tf)(double*,size_t,void*),char* filename,void *p){
+             double (*tf)(double*,size_t,void*),char* filename,void *p)
+{
   int k,i,l,err;
   double a,s,dist;
   double cutoff = 0.05;
@@ -909,3 +910,89 @@ int sph_dens(int D,int N,int Npoints,double *xp,double *x,
   
   return 0;
 }
+
+int sph_density_ploting(int D,double tau,int Npoints,double *xp,double xl[],double xu[],
+                        int N,double *x,double *u,double *S,double h,
+                        double (*ts)(double*,size_t,void*),
+                        double (*ts_p)(double*,size_t,void*),
+                        double (*te_p)(double*,size_t,void*),char* filename,void *p)
+{
+  int k,i,j,l,err;
+  double si[N],ei[N],pi[N],rhoi[N],a,s,s_p,e_p,dist,u0,C_qg=0.0194521040691;
+  double cutoff = 0.05;
+  vector <domain> dom;
+  wparams par;void *downp;
+  ofstream plotfile;
+  if(D<=0)
+    return -1;
+  
+  par.p=p;  
+  err=init_cube(xl,xu,dom,D);if(err!=0) return err; 
+  par.mdel=&(dom[0]);
+  
+  cout << "preparando os calculos\n";
+  
+  plotfile.open(filename);
+  for(i=0;i<N;i+=1){
+    si[i]=0.;
+    ei[i]=0.;
+    pi[i]=0.;
+    rhoi[i]=0.;
+    for(j=0;j<N;j+=1){
+      dist=0.;
+      for(l=0;l<D;l+=1)
+        dist += (x[i*D+l]-x[j*D+l])*(x[i*D+l]-x[j*D+l]);
+      dist=sqrt(dist);
+      
+      si[i] += S[j]*w_bspline(dist,h);
+      rhoi[i]+=  1.0*w_bspline(dist,h);
+	}
+	u0=1.;
+	for(l=0;l<D;l+=1)
+	  u0 += u[i*D+l]*u[i*D+l];
+	u0=sqrt(u0);
+	
+	si[i] = si[i]/(u0*tau);
+	pi[i] = C_qg*pow(si[i],4.0/3.0);
+	ei[i] = 3.0*pi[i];
+  }
+  
+  cout << "preparando para imprimir\n";
+  
+  for(k=0;k<Npoints;k+=1){
+    s=0.;
+    s_p=0.;
+    e_p=0.;
+    for(i=0;i<N;i+=1){
+      dist=0.;
+	  u0=1.;
+      for(l=0;l<D;l+=1){
+        dist+=(xp[k*D+l]-x[i*D+l])*(xp[k*D+l]-x[i*D+l]);
+        u0 += u[i*D+l]*u[i*D+l];
+      }
+      dist=sqrt(dist);
+      u0=sqrt(u0);
+      
+      s   += S[i]*w_bspline(dist,h);
+      s_p += (si[i]/rhoi[i])*w_bspline(dist,h);
+      e_p += (ei[i]/rhoi[i])*w_bspline(dist,h);
+    }
+    for(l=0;l<D;l+=1)
+      plotfile << xp[k*D+l] << " ";
+
+    a=ts(xp+k*D,D,&par);
+    plotfile << s << " " << a << " ";
+    
+    a=ts_p(xp+k*D,D,&par);
+    plotfile << s_p << " " << a << " ";
+    
+    a=te_p(xp+k*D,D,&par);
+    plotfile << e_p << " " << a << " \n";
+  }
+  plotfile.close();
+  
+  cout << "impresso\n";
+  
+  return 0;
+}
+

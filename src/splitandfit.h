@@ -115,3 +115,9 @@ double w_bspline(double r,double h);
 int sph_dens(int D,int N,int Npoints,double *xp,double *x,
              double *S,double h,double xl[],double xu[],
              double (*tf)(double*,size_t,void*),char* filename,void *p);
+             
+int sph_density_ploting(int D,double tau,int Npoints,double *xp,double xl[],double xu[],
+                        int N,double *x,double *u,double *S,double h,
+                        double (*ts)(double*,size_t,void*),
+                        double (*ts_p)(double*,size_t,void*),
+                        double (*te_p)(double*,size_t,void*),char* filename,void *p);

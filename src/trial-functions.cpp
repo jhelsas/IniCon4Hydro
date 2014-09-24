@@ -168,7 +168,7 @@ double gubser_entropy(double *x,size_t dim,void *par){
     return 0.;
   
   if(dim != 2) {
-    fprintf(stderr, "error: dim != 2");
+    fprintf(stderr, "error: dim != 2\n");
     abort();
   }
   double *p = (double*)(lpar->p);
@@ -190,7 +190,7 @@ double gubser_proper_entropy(double *x,size_t dim,void *par){
     return 0.;
   
   if(dim != 2) {
-    fprintf(stderr, "error: dim != 2");
+    fprintf(stderr, "error: dim != 2\n");
     abort();
   }
   double *p = (double*)(lpar->p);
@@ -201,6 +201,27 @@ double gubser_proper_entropy(double *x,size_t dim,void *par){
   
   return (s0*(2.*q)*(2.*q))/(tau*lambda);
   
+}
+
+double gubser_proper_energy(double *x,size_t dim, void *par){
+  int err;
+  wparams *lpar=(wparams*)par;
+  
+  err=check_inside(x,dim,lpar->mdel);
+  if(err!=0)
+    return 0.;
+  
+  if(dim != 2) {
+    fprintf(stderr, "error: dim != 2\n");
+    abort();
+  }
+  double *p = (double*)(lpar->p);
+  double s0=p[0], q=p[1],tau=p[2];
+  double r2,lambda,C_qg=0.0194521040691;
+  r2=x[0]*x[0]+x[1]*x[1];
+  lambda = 1.+2.*q*q*(tau*tau+r2) + q*q*q*q*(tau*tau-r2)*(tau*tau-r2);
+  
+  return ((3.0*s0*cbrt(s0))*pow(2.*q,8./3.))/(tau*lambda*cbrt(tau*lambda));
 }
 
 int gubser_velocity(double *x,size_t dim,void *par,double *u){
