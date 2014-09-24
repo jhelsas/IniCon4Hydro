@@ -49,7 +49,7 @@ int main(int argc,char **argv){
   
   cout << "print\n";  
   //err=print_sph(D,"SPH-particles.dat",dom); if(err!=0) return err;
-  err=print_moving_sph(D,"SPH-particles.dat",dom,gubser_velocity,&par); if(err!=0) return err;
+  err=print_moving_sph(D,argv[1],dom,gubser_velocity,&par); if(err!=0) return err;
   
   return 0;
 }
