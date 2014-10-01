@@ -24,11 +24,11 @@ int main(int argc,char **argv){
   vector <domain> dom;
   gsl_monte_function F;
   
-  p[0] =1.0;p[5] =2.0;
+  p[0] =1.0;p[5] =0.7;
   p[1] =0.0;p[6] =0.7;
   p[2] =0.0;p[7] =1.25;
-  p[3] =1.0;p[8] =0.15;
-  p[4] =1.5;p[9] =0.15;
+  p[3] =1.0;p[8] =0.3;
+  p[4] =1.5;p[9] =0.3;
   
   F.f= gauss_whs; F.dim=D;par.p=(void*)p;F.params=(void*)&par;
   
