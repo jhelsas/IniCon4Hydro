@@ -92,6 +92,45 @@ double winicon(double x[],size_t dim,void *par){
   return A*exp(-0.5*(pow((xx-x0)/sigx,2.)+pow((yy-y0)/sigy,2.)));
 }
 
+
+double gauss_whs(double x[],size_t dim,void *par){
+  int err;
+  wparams *lpar=(wparams*)par;
+  
+  err=check_inside(x,dim,lpar->mdel);
+  if(err!=0)
+    return 0.;
+  
+  if(dim != 2) {
+    fprintf(stderr, "error: dim != 2");
+    abort();
+  }  
+  
+  double xx = x[0], yy = x[1],r2,r2hs;
+
+  double *p = (double*)(lpar->p);
+  double    A = p[0];
+  double   x0 = p[1];
+  double   y0 = p[2];
+  double sigx = p[3];
+  double sigy = p[4];
+  double    Ahs = p[5];
+  double   x0hs = p[6];
+  double   y0hs = p[7];
+  double sigxhs = p[8];
+  double sigyhs = p[9];
+  
+  r2 = pow((xx-x0)/sigx,2.)+pow((yy-y0)/sigy,2.);
+  r2hs= ((xx-x0hs)/sigxhs)*((xx-x0hs)/sigxhs) + ((yy-y0hs)/sigyhs)*((yy-y0hs)/sigyhs);
+
+  if(r2hs > 20.)
+    return A*gsl_sf_exp(-0.5*r2);
+    
+  else
+    return A*gsl_sf_exp(-0.5*r2)+Ahs*gsl_sf_exp(-0.5*r2hs);
+}
+
+
 double woodsaxon(double x[],size_t dim,void *par){
   int err;
   wparams *lpar=(wparams*)par;
@@ -158,6 +197,13 @@ int null_velocity(double *x,size_t dim,void *par,double *u){
   
   return 0;
 }
+
+/*
+ * Gubser
+ p[0]=1.0;   s0  
+ p[1]=1.0;   q  
+ p[2]=1.0;  tau  
+ */
 
 double gubser_entropy(double *x,size_t dim,void *par){
   int err;
