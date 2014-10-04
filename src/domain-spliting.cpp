@@ -24,7 +24,7 @@ int main(int argc,char **argv){
   vector <domain> dom;
   gsl_monte_function F;
   
-  p[0] =1.0;p[5] =0.7;
+  p[0] =1.0;p[5] =0.4;
   p[1] =0.0;p[6] =0.7;
   p[2] =0.0;p[7] =1.25;
   p[3] =1.0;p[8] =0.3;
