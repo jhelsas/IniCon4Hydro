@@ -25,6 +25,9 @@ gubser.o: src/splitandfit.h src/trial-functions.h
 example.o: src/splitandfit.h src/trial-functions.h
 	g++ -c src/examples/example.cpp -O3 -o obj/example.o
 
+domain-spliting.o: src/splitandfit.h src/trial-functions.h
+	g++ -c src/domain-spliting.cpp -O3 -o obj/domain-spliting.o
+
 splitandfit.o: src/splitandfit.cpp src/splitandfit.h
 	g++ -c src/splitandfit.cpp -O3 -o obj/splitandfit.o
 
