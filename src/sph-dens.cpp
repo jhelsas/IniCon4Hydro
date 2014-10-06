@@ -30,7 +30,7 @@ int main(int argc,char **argv){
   err=sph_read(argv[1],&D,&N,&x,&u,&S);if(err!=0) return err;
 
   double xl[D],xu[D],dx[D];
-  for(l=0;l<D;l+=1){xl[l]=-4.0;dx[l]=0.05;xu[l]=4.0+1.01*dx[l];}
+  for(l=0;l<D;l+=1){xl[l]=-4.0;dx[l]=0.15;xu[l]=4.0+1.01*dx[l];}
   
   err=create_grid(D,&xp,xl,xu,dx,&Npoints);if(err!=0) return err;         
   err=sph_dens(D,N,Npoints,xp,x,S,h,xl,xu,gubser_entropy,"ploting.dat",p);if(err!=0){ cout << err << endl; return err;}

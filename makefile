@@ -1,14 +1,29 @@
 domain-spliting: domain-spliting.o splitandfit.o trial-functions.o src/splitandfit.h src/trial-functions.h
 	g++ -o domain-spliting obj/domain-spliting.o obj/splitandfit.o obj/trial-functions.o -lm -lgsl -lgslcblas
 
+gauss_whs: gauss_whs.o splitandfit.o trial-functions.o src/splitandfit.h src/trial-functions.h
+	g++ -o gauss_whs obj/gauss_whs.o obj/splitandfit.o obj/trial-functions.o -lm -lgsl -lgslcblas
+
+gubser: gubser.o splitandfit.o trial-functions.o src/splitandfit.h src/trial-functions.h
+	g++ -o gubser obj/gubser.o obj/splitandfit.o obj/trial-functions.o -lm -lgsl -lgslcblas
+
+example: example.o splitandfit.o trial-functions.o src/splitandfit.h src/trial-functions.h
+	g++ -o example obj/example.o obj/splitandfit.o obj/trial-functions.o -lm -lgsl -lgslcblas
+
 sph-dens: splitandfit.o trial-functions.o sph-dens.o src/splitandfit.h src/trial-functions.h
 	g++ -o sph-dens obj/sph-dens.o obj/splitandfit.o obj/trial-functions.o -lm -lgsl -lgslcblas
 
 plot_densities: splitandfit.o trial-functions.o plot_densities.o src/splitandfit.h src/trial-functions.h
 	g++ -o plot_densities obj/plot_densities.o obj/splitandfit.o obj/trial-functions.o -lm -lgsl -lgslcblas
 
-domain-spliting.o: src/splitandfit.h src/trial-functions.h
-	g++ -c src/domain-spliting.cpp -O3 -o obj/domain-spliting.o
+gauss_whs.o: src/splitandfit.h src/trial-functions.h
+	g++ -c src/examples/gauss_whs.cpp -O3 -o obj/gauss_whs.o
+
+gubser.o: src/splitandfit.h src/trial-functions.h
+	g++ -c src/examples/gubser.cpp -O3 -o obj/gubser.o
+
+example.o: src/splitandfit.h src/trial-functions.h
+	g++ -c src/examples/example.cpp -O3 -o obj/example.o
 
 splitandfit.o: src/splitandfit.cpp src/splitandfit.h
 	g++ -c src/splitandfit.cpp -O3 -o obj/splitandfit.o

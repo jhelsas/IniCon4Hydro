@@ -4,8 +4,8 @@
 #include <cmath>
 #include <string.h>
 #include <vector>
-#include "splitandfit.h"
-#include "trial-functions.h"
+#include "../splitandfit.h"
+#include "../trial-functions.h"
 
 using namespace std;
 
@@ -131,7 +131,7 @@ double tkgauss(double x[],size_t dim,void *par){
   return funct;
 }
 
-int main(int argc,char **argv){
+int main(){
   const int D=2,Ntri=6,split_type=0;
   int err,l; 
   double cutoff=0.001,xi[D],xf[D],xv[Ntri*(D+1)*D];
@@ -161,7 +161,7 @@ int main(int argc,char **argv){
   err=clean_domain(dom);if(err!=0) return err;
   
   cout << "print\n";  
-  err=print_sph(D,"SPH-particles.dat",dom); if(err!=0) return err;
+  err=print_sph(D,"results/gauss.dat",dom); if(err!=0) return err;
   
   return 0;
 }
