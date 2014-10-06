@@ -1,4 +1,8 @@
-double fd(double *x,size_t n,void *params);
+/*
+ * Density Profiles
+ */
+
+double cubic_dome(double *x,size_t n,void *params);
 
 double winicon(double x[],size_t dim,void *par);
 
@@ -14,6 +18,10 @@ double gubser_proper_entropy(double *x,size_t dim, void *par);
 
 double gubser_proper_energy(double *x,size_t dim, void *par);
 
+/*
+ * Velocity Profiles
+ */
+ 
 int null_velocity(double *x,size_t dim,void *par,double *u);
 
 int gubser_velocity(double *x,size_t dim,void *par,double *u);

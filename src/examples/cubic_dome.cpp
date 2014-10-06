@@ -5,6 +5,7 @@
 #include <string.h>
 #include <vector>
 #include "../splitandfit.h"
+#include "../trial-functions.h"
 
 using namespace std;
 
@@ -138,7 +139,7 @@ int main(){
   vector <domain> dom;
   gsl_monte_function F;
   
-  F.f = &tkgauss; F.dim=D;par.p=NULL;F.params=&par;
+  F.f = &cubic_dome; F.dim=D;par.p=NULL;F.params=&par;
   
   if(split_type==0){
     cout << "init\n";
@@ -160,7 +161,7 @@ int main(){
   err=clean_domain(dom);if(err!=0) return err;
   
   cout << "print\n";  
-  err=print_moving_sph(D,"results/tkgauss.dat",dom,null_velocity,&par); if(err!=0) return err;
+  err=print_moving_sph(D,"results/cubic_dome.dat",dom,null_velocity,&par); if(err!=0) return err;
   
   return 0;
 }

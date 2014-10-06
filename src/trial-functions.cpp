@@ -42,7 +42,7 @@ using namespace std;
  * que seja seguido o modelo acima.
  */
 
-double fd(double *x,size_t n,void *par){
+double cubic_dome(double *x,size_t n,void *par){
   unsigned int i;
   int err;
   double r=0.;
