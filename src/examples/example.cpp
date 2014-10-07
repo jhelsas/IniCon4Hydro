@@ -5,6 +5,7 @@
 #include <string.h>
 #include <vector>
 #include "../splitandfit.h"
+#include "../trial-functions.h"
 
 using namespace std;
 
