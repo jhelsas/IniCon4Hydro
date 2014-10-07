@@ -138,7 +138,7 @@ int main(){
   vector <domain> dom;
   gsl_monte_function F;
   
-  F.f = &tkgauss; F.dim=D;par.p=NULL;F.params=&par;
+  F.f = &tkgauss; F.dim=D; par.p=NULL; F.params=&par;
   
   if(split_type==0){
     cout << "init\n";
