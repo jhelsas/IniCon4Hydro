@@ -8,8 +8,8 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 if len(sys.argv)!=2:
-	print 'Please, provide a file containing the densities.'
-	exit()
+    print 'Please, provide a file containing the densities.'
+    exit()
 
 fdens = sys.argv[1]
 
