@@ -4,8 +4,8 @@
 #include <cmath>
 #include <string.h>
 #include <vector>
-#include "splitandfit.h"
-#include "trial-functions.h"
+#include "../splitandfit.h"
+#include "../trial-functions.h"
 
 using namespace std;
 
@@ -104,34 +104,8 @@ using namespace std;
  * Numa revisão posterior, clean_domain deverá ser imbutida dentro de 
  * domain_split
  */
- 
-double tkgauss(double x[],size_t dim,void *par){
-  int l,err;
-  double X[dim],Xmax[dim],funct,dist=0.;
-  wparams *lpar=(wparams*)par;
-  
-  err=check_inside(x,dim,lpar->mdel);
-  if(err!=0)
-    return 0.;
-    
-  Xmax[0]=3.0;
-  if(dim>=2){
-    Xmax[1]=2.0;
-    if(dim>=3){
-      Xmax[2]=1.0;
-      for(l=3;l<dim;l+=1)
-        Xmax[l]=0.0;
-    }	
-  } 
-  
-  for(l=0;l<dim;l+=1)
-    dist+= (x[l]/Xmax[l])*(x[l]/Xmax[l]);
-  funct=exp(-15.0*dist);
-  
-  return funct;
-}
 
-int main(int argc,char **argv){
+int main(){
   const int D=2,Ntri=6,split_type=0;
   int err,l; 
   double cutoff=0.001,xi[D],xf[D],xv[Ntri*(D+1)*D];
@@ -139,7 +113,7 @@ int main(int argc,char **argv){
   vector <domain> dom;
   gsl_monte_function F;
   
-  F.f = &tkgauss; F.dim=D;par.p=NULL;F.params=&par;
+  F.f = &cubic_dome; F.dim=D; par.p=NULL;F.params=&par;
   
   if(split_type==0){
     cout << "init\n";
@@ -161,7 +135,7 @@ int main(int argc,char **argv){
   err=clean_domain(dom);if(err!=0) return err;
   
   cout << "print\n";  
-  err=print_sph(D,"SPH-particles.dat",dom); if(err!=0) return err;
+  err=print_moving_sph(D,"results/cubic_dome.dat",dom,null_velocity,&par); if(err!=0) return err;
   
   return 0;
 }
