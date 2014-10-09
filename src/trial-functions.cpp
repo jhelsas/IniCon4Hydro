@@ -92,7 +92,6 @@ double winicon(double x[],size_t dim,void *par){
   return A*exp(-0.5*(pow((xx-x0)/sigx,2.)+pow((yy-y0)/sigy,2.)));
 }
 
-
 double gauss_whs(double x[],size_t dim,void *par){
   int err;
   wparams *lpar=(wparams*)par;

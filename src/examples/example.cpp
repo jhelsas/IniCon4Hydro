@@ -5,7 +5,6 @@
 #include <string.h>
 #include <vector>
 #include "../splitandfit.h"
-#include "../trial-functions.h"
 
 using namespace std;
 
@@ -131,15 +130,31 @@ double tkgauss(double x[],size_t dim,void *par){
   return funct;
 }
 
+int null_velocity(double *x,size_t dim,void *par,double *u){
+  int l;
+  for(l=0;l<dim;l+=1)
+    u[l]=0.;
+  
+  return 0;
+}
+
 int main(){
-  const int D=2,Ntri=6,split_type=0;
-  int err,l; 
+  int D=2,Ntri=6,split_type=0;
+  int l,err,Npoints,N;
   double cutoff=0.001,xi[D],xf[D],xv[Ntri*(D+1)*D];
+  double xl[D],xu[D],dx[D];
+  double *xp,*x,*u,*S,s,dist,h=0.1;
   wparams par;
   vector <domain> dom;
   gsl_monte_function F;
+  ifstream sphfile;
+  ofstream plotfile;
+  FILE *sphofile;
   
-  F.f = &tkgauss; F.dim=D; par.p=NULL; F.params=&par;
+  F.f = &tkgauss; 
+  F.dim=D; 
+  par.p=NULL; 
+  F.params=&par;
   
   if(split_type==0){
     cout << "init\n";
@@ -161,7 +176,19 @@ int main(){
   err=clean_domain(dom);if(err!=0) return err;
   
   cout << "print\n";  
-  err=print_moving_sph(D,"results/tkgauss.dat",dom,null_velocity,&par); if(err!=0) return err;
+  err=print_moving_sph(D,"results/example.dat",dom,null_velocity,&par); if(err!=0) return err;
+  
+  cout << "reading\n";
+  err=sph_read("results/example.dat",&D,&N,&x,&u,&S);if(err!=0) return err;
+
+  for(l=0;l<D;l+=1){xl[l]=-4.0;dx[l]=0.15;xu[l]=4.0+1.01*dx[l];}
+  
+  err=create_grid(D,&xp,xl,xu,dx,&Npoints);if(err!=0) return err;         
+  
+  cout << "ploting\n";
+  err=sph_dens(D,N,Npoints,xp,x,S,h,xl,xu,tkgauss,"results/example_plot.dat",NULL);if(err!=0){ cout << err << endl; return err;}
+  
+  delete x;delete u; delete S; 
   
   return 0;
 }

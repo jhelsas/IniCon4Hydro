@@ -8,7 +8,7 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 if len(sys.argv)!=2:
-    print 'Please, provide a file containing the densities.'
+    print ('Please, provide a file containing the densities.')
     exit()
 
 fdens = sys.argv[1]
@@ -26,7 +26,7 @@ gr1.set_xlabel("x [fm]")
 gr1.set_ylabel('y [fm]')
 gr1.set_zlabel('density')
 gr1.plot_wireframe(x, y, d1, rstride=10, cstride=10, color='red', label='SPH density dist.')
-gr1.plot_wireframe(x, y, d2, rstride=1, cstride=1, color='blue', linestyle='dashed', label='Orig. density dist.')
+#gr1.plot_wireframe(x, y, d2, rstride=1, cstride=1, color='blue', linestyle='dashed', label='Orig. density dist.')
 leg = gr1.legend()
 
 fig2 = plt.figure( figsize=(8, 6) )
