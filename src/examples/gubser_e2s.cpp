@@ -14,8 +14,17 @@ using namespace std;
  * type = 1 : 2 dimensional triangular domain
  * type = 2 : 3 dimensional tetraedric domain
  */
+typedef struct conv_wrap{
+  double (*f2s)(double,void*p);
+  void *funpar, *f2spar;
+} conv_wrap;
 
-double gubser_entropy(double *x,size_t dim,void *par){
+double e2s_qg(double epsilon,void *p){
+  const double C_qg = 0.058356312;/* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
+  return pow(epsilon/C_qg,3./4.);
+}
+
+double gubser_e2s(double *x,size_t dim, void *par){
   int err;
   wparams *lpar=(wparams*)par;
   
@@ -27,24 +36,34 @@ double gubser_entropy(double *x,size_t dim,void *par){
     fprintf(stderr, "error: dim != 2\n");
     abort();
   }
-  double *p = (double*)(lpar->p);
-  double s0=p[0], q=p[1],tau=p[2];
-  double r2,lambda;
+  conv_wrap *cw = (conv_wrap *)(lpar->p);
+  double *p = (double*)(cw->funpar);
+  double e0=p[0], q=p[1],tau=p[2];
+  double r2,lambda,gamma,s,epsilon;
   r2=x[0]*x[0]+x[1]*x[1];
   lambda = 1.+2.*q*q*(tau*tau+r2) + q*q*q*q*(tau*tau-r2)*(tau*tau-r2);
   
-  return (s0*(2.*q)*(2.*q)*(1.+q*q*(tau*tau+r2)))/(lambda*sqrt(lambda));
-  
+  epsilon = (e0*pow(2.*q,8./3.))/(tau*lambda*cbrt(tau*lambda));
+  s=cw->f2s(epsilon,cw->f2spar);
+  gamma = (1.+q*q*(tau*tau+r2))/sqrt(lambda);
+  return s*gamma*tau;
 }
 
 int gubser_velocity(double *x,size_t dim,void *par,double *u){
-  if(dim!=2)
-    return 1;
-    
   int err;
   wparams *lpar=(wparams*)par;
-  double *p = (double*)(lpar->p);
-  double s0=p[0], q=p[1],tau=p[2];
+  
+  err=check_inside(x,dim,lpar->mdel);
+  if(err!=0)
+    return 0.;
+  
+  if(dim != 2) {
+    fprintf(stderr, "error: dim != 2\n");
+    abort();
+  }
+  conv_wrap *cw = (conv_wrap *)(lpar->p);
+  double *p = (double*)(cw->funpar);
+  double e0=p[0], q=p[1],tau=p[2];
   double r2,lambda,c;
   r2=x[0]*x[0]+x[1]*x[1];
   lambda = 1.+2.*q*q*(tau*tau+r2) + q*q*q*q*(tau*tau-r2)*(tau*tau-r2);
@@ -61,6 +80,7 @@ int main(){
   double cutoff,xi[D],xf[D],p[3],xv[Ntri*(D+1)*D];
   double xl[D],xu[D],dx[D];
   double *xp,*x,*u,*S,s,dist,h=0.1;
+  conv_wrap wrp;
   wparams par;
   vector <domain> dom;
   gsl_monte_function F;
@@ -68,10 +88,13 @@ int main(){
   ofstream plotfile;
   FILE *sphofile;
   
-  p[0]=160.8; /*  s0 */ 
+  p[0]=20.0;/*  e0 */ 
   p[1]=1.0; /*  q  */
   p[2]=1.0; /* tau */ 
-  F.f= gubser_entropy; F.dim=D;par.p=(void*)p;F.params=(void*)&par;
+  F.f= gubser_entropy; F.dim=D;
+  wrp.f2s=e2s_qg; wrp.e2spar=NULL; 
+  wrp.funpar=(void*)p; par.p=(void*)wrp;
+  F.params=(void*)&par;
   cutoff=0.03202;
   
   if(split_type==0){
