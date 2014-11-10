@@ -3,6 +3,8 @@
  * 
  * e = C s^{4/3}
  */
+ 
+#include <cmath>
 
 double e2s_pion(double epsilon,void *p){
   const double C_pi = 0.134828384; /* 3*(hbarc)*((45÷(3x128×π^2))^(1/3)) GeV fm */
@@ -73,7 +75,7 @@ double T2s_table(double T,void *p){
   }
   
   T = (T - eos_t[i*Ne+1])/(eos_t[(i+1)*Ne+1]-eos_t[i*Ne+1]);
-  T = T*(eos_t[(i+1)*Ne+0]-eos_t[i*Ne]) + eos_t[i*Ne];
+  T = T*(eos_t[(i+1)*Ne]-eos_t[i*Ne]) + eos_t[i*Ne];
     
   return T;
 }
