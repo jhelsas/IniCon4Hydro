@@ -50,7 +50,7 @@ double gauss_whs(double x[],size_t dim,void *par){
     return A*gsl_sf_exp(-0.5*r2);
     
   else
-    return A*gsl_sf_exp(-0.5*r2)+Ahs*gsl_sf_exp(-0.5*r2hs);
+    return A*gsl_sf_exp(-0.5*r2);
 }
 
 int null_velocity(double *x,size_t dim,void *par,double *u){
@@ -64,7 +64,7 @@ int null_velocity(double *x,size_t dim,void *par,double *u){
 int main(){
   int D=2,Ntri=6,split_type=0;
   int l,err,Npoints,N;
-  double cutoff=0.0002,xi[D],xf[D],p[10],xv[Ntri*(D+1)*D];
+  double cutoff=0.2,xi[D],xf[D],p[10],xv[Ntri*(D+1)*D];
   double xl[D],xu[D],dx[D];
   double *xp,*x,*u,*S,s,dist,h=0.1;
   wparams par;
@@ -74,7 +74,7 @@ int main(){
   ofstream plotfile;
   FILE *sphofile;
   
-  p[0] =1.0;p[5] =0.7;
+  p[0] =160.0;p[5] =0.0;
   p[1] =0.0;p[6] =0.7;
   p[2] =0.0;p[7] =1.25;
   p[3] =1.0;p[8] =0.3;
