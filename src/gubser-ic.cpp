@@ -5,7 +5,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf.h>
 
-double gubser_energy2entropy(double *x,size_t dim, void *par){
+double gubser_e2s(double *x,size_t dim, void *par){
   int err;
   wparams *lpar=(wparams*)par;
   
