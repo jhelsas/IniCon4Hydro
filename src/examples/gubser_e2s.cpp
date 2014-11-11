@@ -88,12 +88,12 @@ int main(){
   ofstream plotfile;
   FILE *sphofile;
   
-  p[0]=20.0;/*  e0 */ 
+  p[0]=50.689088426;/*  e0 */ 
   p[1]=1.0; /*  q  */
   p[2]=1.0; /* tau */ 
-  F.f= gubser_entropy; F.dim=D;
-  wrp.f2s=e2s_qg; wrp.e2spar=NULL; 
-  wrp.funpar=(void*)p; par.p=(void*)wrp;
+  F.f= gubser_e2s; F.dim=D;
+  wrp.f2s=e2s_qg; wrp.f2spar=NULL; 
+  wrp.funpar=(void*)p; par.p=(void*)&wrp;
   F.params=(void*)&par;
   cutoff=0.03202;
   
@@ -127,7 +127,7 @@ int main(){
   err=create_grid(D,&xp,xl,xu,dx,&Npoints);if(err!=0) return err;         
   
   cout << "ploting\n";
-  err=sph_dens(D,N,Npoints,xp,x,S,h,xl,xu,gubser_entropy,"results/gubser_plot.dat",p);if(err!=0){ cout << err << endl; return err;}
+  err=sph_dens(D,N,Npoints,xp,x,S,h,xl,xu,gubser_e2s,"results/gubser_plot.dat",&wrp);if(err!=0){ cout << err << endl; return err;}
   
   delete x;delete u; delete S; 
   

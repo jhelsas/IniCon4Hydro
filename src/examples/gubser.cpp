@@ -58,7 +58,7 @@ int gubser_velocity(double *x,size_t dim,void *par,double *u){
 int main(){
   int D=2,Ntri=6,split_type=0;
   int l,err,Npoints,N;
-  double cutoff,xi[D],xf[D],p[3],xv[Ntri*(D+1)*D];
+  double cutoff=0.0002,xi[D],xf[D],p[3],xv[Ntri*(D+1)*D];
   double xl[D],xu[D],dx[D];
   double *xp,*x,*u,*S,s,dist,h=0.1;
   wparams par;
@@ -68,11 +68,10 @@ int main(){
   ofstream plotfile;
   FILE *sphofile;
   
-  p[0]=160.8; /*  s0 */ 
+  p[0]=1.0; /*  s0 */ 
   p[1]=1.0; /*  q  */
   p[2]=1.0; /* tau */ 
   F.f= gubser_entropy; F.dim=D;par.p=(void*)p;F.params=(void*)&par;
-  cutoff=0.03202;
   
   if(split_type==0){
     cout << "init\n";
