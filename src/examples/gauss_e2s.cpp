@@ -80,9 +80,9 @@ int null_velocity(double *x,size_t dim,void *par,double *u){
 int main(){
   int D=2,Ntri=6,split_type=0;
   int l,err,Npoints,N;
-  double cutoff=0.02,xi[D],xf[D],p[11],xv[Ntri*(D+1)*D];
+  double cutoff=1.0,xi[D],xf[D],p[11],xv[Ntri*(D+1)*D];
   double xl[D],xu[D],dx[D];
-  double *xp,*x,*u,*S,s,dist,h=0.1;
+  double *xp,*x,*u,*S,s,dist,h=0.4;
   conv_wrap wrp;
   wparams par;
   vector <domain> dom;
@@ -91,12 +91,17 @@ int main(){
   ofstream plotfile;
   FILE *sphofile;
   
-  p[0] =1.0*22;   /* e0 */   p[5] =0.7*22;  /* e0hs */
-  p[1] =0.0;   /* x0 */   p[6] =0.7;  /* x0hs */
-  p[2] =0.0;   /* y0 */   p[7] =1.25; /* y0hs */
-  p[3] =1.0;  /* sigx */  p[8] =0.3; /* sigxhs */
-  p[4] =1.5;  /* sigy */  p[9] =0.3; /* sigyhs */
-  p[10] = 1.0; /* tau */
+  /*  e0 (GeV/fm^3) */ p[0] =1.0*6.2;    
+  /*  x0     fm     */ p[1] =0.0;        
+  /*  y0     fm     */ p[2] =0.0;        
+  /* sigx    fm     */ p[3] =3.5;       
+  /* sigy    fm     */ p[4] =3.5;       
+  /* e0hs (GeV/fm^3)*/ p[5] =0.0*22;  
+  /* x0hs    fm     */ p[6] =0.7;     
+  /* y0hs    fm     */ p[7] =1.25;    
+  /* sigxhs  fm     */ p[8] =0.3;     
+  /* sigyhs  fm     */ p[9] =0.3;     
+  /*  tau    fm     */ p[10] = 1.0;   
   
   F.f= gauss_e2s; F.dim=D;
   wrp.f2s=e2s_qg; wrp.f2spar=NULL; 
@@ -105,7 +110,7 @@ int main(){
   
   if(split_type==0){
     cout << "init\n";
-    for(l=0;l<D;l+=1){xi[l]=-4.0;xf[l]=4.0;}
+    for(l=0;l<D;l+=1){xi[l]=-12.0;xf[l]=12.0;}
     err=init_cube(xi,xf,dom,D);if(err!=0) return err; 
   }
   else if(split_type==1){
@@ -128,7 +133,7 @@ int main(){
   cout << "reading\n";
   err=sph_read("results/gauss_e2s.dat",&D,&N,&x,&u,&S);if(err!=0) return err;
 
-  for(l=0;l<D;l+=1){xl[l]=-4.0;dx[l]=0.15;xu[l]=4.0+1.01*dx[l];}
+  for(l=0;l<D;l+=1){xl[l]=-12.0;dx[l]=0.3;xu[l]=12.0+1.01*dx[l];}
   
   err=create_grid(D,&xp,xl,xu,dx,&Npoints);if(err!=0) return err;         
   
