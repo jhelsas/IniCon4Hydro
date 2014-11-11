@@ -91,7 +91,7 @@ int main(){
   ofstream plotfile;
   FILE *sphofile;
   
-  p[0] =1.0;   /* e0 */   p[5] =0.7;  /* e0hs */
+  p[0] =1.0*22;   /* e0 */   p[5] =0.7*22;  /* e0hs */
   p[1] =0.0;   /* x0 */   p[6] =0.7;  /* x0hs */
   p[2] =0.0;   /* y0 */   p[7] =1.25; /* y0hs */
   p[3] =1.0;  /* sigx */  p[8] =0.3; /* sigxhs */
