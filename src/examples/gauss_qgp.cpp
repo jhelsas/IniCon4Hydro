@@ -89,7 +89,7 @@ int null_velocity(double *x,size_t dim,void *par,double *u){
 int main(){
   int D=2,Ntri=6,split_type=0;
   int l,err,Npoints,N;
-  double cutoff=0.02,xi[D],xf[D],p[11],xv[Ntri*(D+1)*D];
+  double cutoff=2.0,xi[D],xf[D],p[11],xv[Ntri*(D+1)*D];
   double xl[D],xu[D],dx[D];
   double *xp,*x,*u,*S,s,dist,h=0.1;
   conv_wrap wrp;
