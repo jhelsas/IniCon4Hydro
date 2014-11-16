@@ -21,9 +21,18 @@ typedef struct conv_wrap{
   void *funpar, *f2spar;
 } conv_wrap;
 
-double e2s_qg(double epsilon,void *p){
-  const double C_qg = 0.058356312;/* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
-  return pow(epsilon/C_qg,3./4.);
+double e2s_qgphr(double epsilon, void *p){
+  const double s1=2.1, s2=9.4125, C_hrg=0.1149;
+  const double B=0.32, e1=0.28, e2=1.45;
+  const double beta0=0.2, p1=0.056,Tc=(e1+p1)/s1;
+  const double C_qgp = (e2-B)/pow(s2,4./3.);
+  
+  if(epsilon <= e1 )
+    return pow(epsilon/C_hrg,1./(1.+beta0));
+  else if(e1 < epsilon && epsilon <= e2 )
+    return ((epsilon+p1)/(e1+p1))*s1;
+  else
+    return pow((epsilon-B)/(e2-B),3./4.)*s2;
 }
  
 double gauss_e2s(double x[],size_t dim,void *par){
@@ -80,7 +89,7 @@ int null_velocity(double *x,size_t dim,void *par,double *u){
 int main(){
   int D=2,Ntri=6,split_type=0;
   int l,err,Npoints,N;
-  double cutoff=0.1,xi[D],xf[D],p[11],xv[Ntri*(D+1)*D];
+  double cutoff=2.0,xi[D],xf[D],p[11],xv[Ntri*(D+1)*D];
   double xl[D],xu[D],dx[D];
   double *xp,*x,*u,*S,s,dist,h=0.1;
   conv_wrap wrp;
@@ -104,7 +113,7 @@ int main(){
   /*  tau    fm     */ p[10] = 1.0;   
   
   F.f= gauss_e2s; F.dim=D;
-  wrp.f2s=e2s_qg; wrp.f2spar=NULL; 
+  wrp.f2s=e2s_qgphr; wrp.f2spar=NULL; 
   wrp.funpar=(void*)p; par.p=(void*)&wrp;
   F.params=(void*)&par;
   
@@ -128,17 +137,17 @@ int main(){
   err=clean_domain(dom);if(err!=0) return err;
   
   cout << "print\n";  
-  err=print_moving_sph(D,"results/gauss_e2s.dat",dom,null_velocity,&par); if(err!=0) return err;
+  err=print_moving_sph(D,"results/gauss_qgp.dat",dom,null_velocity,&par); if(err!=0) return err;
   
   cout << "reading\n";
-  err=sph_read("results/gauss_e2s.dat",&D,&N,&x,&u,&S);if(err!=0) return err;
+  err=sph_read("results/gauss_qgp.dat",&D,&N,&x,&u,&S);if(err!=0) return err;
 
   for(l=0;l<D;l+=1){xl[l]=-12.0;dx[l]=0.3;xu[l]=12.0+1.01*dx[l];}
   
   err=create_grid(D,&xp,xl,xu,dx,&Npoints);if(err!=0) return err;         
   
   cout << "ploting\n";
-  err=sph_dens(D,N,Npoints,xp,x,S,h,xl,xu,gauss_e2s,"results/gauss_e2s_plot.dat",&wrp);if(err!=0){ cout << err << endl; return err;}
+  err=sph_dens(D,N,Npoints,xp,x,S,h,xl,xu,gauss_e2s,"results/gauss_qgp_plot.dat",&wrp);if(err!=0){ cout << err << endl; return err;}
   
   delete x;delete u; delete S; 
   
