@@ -255,3 +255,4 @@ int ini_write(int D,const char *filename,vector <domain> &dom,
   sphfile.close();
   return 0;
 }
+

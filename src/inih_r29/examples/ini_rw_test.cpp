@@ -3,8 +3,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "inih_r29/ini.h"
-#include "ini_rw.h"
+#include "../ini.h"
+#include "../../ini_rw.h"
 
 using namespace std;
 
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
       printf("%d: %s\n",i,cfg.sphp[i]);
       
   outfile=fopen("gubser_check.ini","w");
-  if(print_cfg(&cfg,outfile) !=0)
+  if(fprint_cfg(&cfg,outfile) !=0)
     return 4;
   fclose(outfile);
       
