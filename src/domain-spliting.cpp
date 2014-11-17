@@ -14,7 +14,6 @@ using namespace std;
  * type = 1 : 2 dimensional triangular domain
  * type = 2 : 3 dimensional tetraedric domain
  */
- 
 
 int main(int argc,char **argv){
   const int D=2,Ntri=6,split_type=0;
