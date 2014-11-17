@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
   printf("Config loaded from gubser.ini: \n\nD=%d",cfg.D);
   printf(" N_sph = %d N_species=%d \nh=%lf kh=%lf\n",
            cfg.N_sph,cfg.N_species,cfg.h,cfg.kh);
-  printf(" ti=%lf tf=%lf dt=%lf \n T_fo=%f\ndata_file=%s\n",
+  printf("ti=%lf tf=%lf dt=%lf \nT_fo=%f\ndata_file=%s\n",
          cfg.ti,cfg.tf,cfg.dt,cfg.Tfo,cfg.file);
   printf("hash=%s\nfolder=%s\nkernel=%s\n",cfg.hash, cfg.folder,cfg.kernel);
   printf("EoS=%s\nsetup=%s\nderiv=%s\n",cfg.EoS, cfg.setup,cfg.deriv);

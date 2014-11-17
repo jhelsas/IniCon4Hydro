@@ -6,7 +6,6 @@
 #include <vector>
 #include "inih_r29/ini.h"
 #include "ini_rw.h"
-#include "splitandfit.h"
 
 int handler(void* user, const char* section, const char* name,
                    const char* value)
@@ -18,7 +17,7 @@ int handler(void* user, const char* section, const char* name,
   #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
   if (MATCH("simulation-parameters", "D")) 
     pcfg->D = atoi(value);
-  else if (MATCH("simulation-parameters", "N_sph")) 
+  else if (MATCH("simulation-parameters", "N_sph"))
     pcfg->N_sph = atoi(value);
   else if (MATCH("simulation-parameters", "N_species"))
     pcfg->N_species = atoi(value);
@@ -137,10 +136,11 @@ int config_free(config *cfg){
 
 int fprint_cfg(config *cfg,FILE *cfgfile){
   int i,l;
+  // write a comment preamble for users
   fprintf(cfgfile,"[simulation-parameters]\n");
   fprintf(cfgfile,"D = %d\n",cfg->D);
-  fprintf(cfgfile,"N_sph = %d\n",cfg->D);
-  fprintf(cfgfile,"N_species = %d\n",cfg->D);
+  fprintf(cfgfile,"N_sph = %d\n",cfg->N_sph);
+  fprintf(cfgfile,"N_species = %d\n",cfg->N_species);
   fprintf(cfgfile,"kernel = %s\n",cfg->kernel);
   fprintf(cfgfile,"integrator = %s\n",cfg->integrator);
   fprintf(cfgfile,"EoS = %s\n",cfg->EoS);
@@ -157,17 +157,20 @@ int fprint_cfg(config *cfg,FILE *cfgfile){
   fprintf(cfgfile,"folder = %s\n",cfg->folder);
   
   fprintf(cfgfile,"\n[accelerator-settings]\n");
-  fprintf(cfgfile,"xmin = ");
-  for(l=0;l< cfg->D;l+=1)
-    fprintf(cfgfile,"%lf ",cfg->xmin[l]);
-    
-  fprintf(cfgfile,"\nxmax = ");
-  for(l=0;l< cfg->D;l+=1)
-    fprintf(cfgfile,"%lf ",cfg->xmax[l]);
-    
-  fprintf(cfgfile,"\ndx = ");
-  for(l=0;l< cfg->D;l+=1)
-    fprintf(cfgfile,"%lf ",cfg->dx[l]);
+  if(cfg->xmin!=NULL){
+    fprintf(cfgfile,"xmin = ");
+    for(l=0;l< cfg->D;l+=1)
+      fprintf(cfgfile,"%lf ",cfg->xmin[l]);}
+  
+  if(cfg->xmax!=NULL){
+    fprintf(cfgfile,"\nxmax = ");
+    for(l=0;l< cfg->D;l+=1)
+      fprintf(cfgfile,"%lf ",cfg->xmax[l]);}
+      
+  if(cfg->dx!=NULL){  
+    fprintf(cfgfile,"\ndx = ");
+    for(l=0;l< cfg->D;l+=1)
+      fprintf(cfgfile,"%lf ",cfg->dx[l]);}
     
   if(strcmp(cfg->file,"none")==0){
     fprintf(cfgfile,"\n\n[SPHparticle-data]\n");
@@ -177,82 +180,78 @@ int fprint_cfg(config *cfg,FILE *cfgfile){
   return 0;
 }
 
-int ini_read(char* filename,int *Dout,int *Nout,
-             double **xout,double **uout,double **Sout)
+int ini_simple_read(char* filename,int *Dout,int *Nout,
+                    double **xout,double **uout,
+                    double **Sout,config *cfg)
 {
   int i,l,D,N;
   double ni,q,*x,*u,*S;
-  config cfg;
   
-  if( config_init(&cfg) != 0)
+  if( config_init(cfg) != 0)
     return 1;
   
-  if (ini_parse(filename, handler, &cfg) < 0)
+  if (ini_parse(filename, handler, cfg) < 0)
     return 2;
   
-  D = cfg.D;
-  N = cfg.N_sph;
+  D = cfg->D;
+  N = cfg->N_sph;
   *Dout=D;
   *Nout=N;
   x = (double*)malloc(N*D*sizeof(double));
   u = (double*)malloc(N*D*sizeof(double));
   S = (double*)malloc(N*sizeof(double));
-  for(i=0;i<N;i+=1){
-    sscanf(cfg->sphp[i],"%lf %lf %lf",&ni,&q,&(S[i]));
-    for(l=0;l<D;l+=1)
-      sscanf(cfg->sphp[i],"%lf ",&(x[i*D+l]));
-    for(l=0;l<D;l+=1)
-      sscanf(cfg->sphp[i],"%lf ",&(u[i*D+l]));
+  
+  if(strcmp(cfg->file,"none")==0){
+    for(i=0;i<N;i+=1){
+      sscanf(cfg->sphp[i],"%lf %lf %lf",&ni,&q,&(S[i]));
+      for(l=0;l<D;l+=1)
+        sscanf(cfg->sphp[i],"%lf ",&(x[i*D+l]));
+      for(l=0;l<D;l+=1)
+        sscanf(cfg->sphp[i],"%lf ",&(u[i*D+l]));
+    }
+  }
+  else{
+	FILE *infile;
+	infile = fopen(cfg->file,"r");
+    for(i=0;i<N;i+=1){
+      fscanf(infile,"%lf %lf %lf",&ni,&q,&(S[i]));
+      for(l=0;l<D;l+=1)
+        fscanf(infile,"%lf ",&(x[i*D+l]));
+      for(l=0;l<D;l+=1)
+        fscanf(infile,"%lf ",&(u[i*D+l]));
+    }
+    fclose(infile);
   }
   *xout=x;
   *uout=u;
   *Sout=S;
-  
-  if( config_free(&cfg) != )
-    return 5;
-  
+    
   return 0;
 }
 
-
-int ini_write(int D,const char *filename,vector <domain> &dom,
-              int (*velocity)(double *,size_t,void *,double *),
-              void *par)
-{
-  int err=0,j,l,it=0,N;
-  double x[D],u[D];
-  ofstream sphfile;
-  vector <domain> :: iterator el;
-  if(D<=0 || filename==NULL || dom.size()==0)
-    return 1;
-  N=dom.size();
-  sphfile.open(filename);
-  sphfile << D << "  " << N << endl;
-  for(el=dom.begin();el!=dom.end();el++){
-    sphfile << 1.0 << " " << 1.0 << " " << el->S << " ";
-    if(el->type==0){
-      for(l=0;l<D;l+=1){ 
-        x[l] = (el->xv[D*0+l]+el->xv[D*((1<<D)-1)+l])/2.;
-        sphfile << x[l] << " ";
-      }
-    }
-    else{
-      for(l=0;l<D;l+=1){
-        x[l]=0.;
-        for(j=0;j<el->Nv;j+=1)
-          x[l]+= el->xv[D*j+l];
-        x[l]=x[l]/(el->Nv);
-        sphfile << x[l] << " ";
-      }
-    }
-    err=velocity(x,D,par,u);
-    for(l=0;l<D;l+=1){
-      sphfile << u[l] << " ";
-    }
-    sphfile << "\n";
-    it++;
-  }
-  sphfile.close();
-  return 0;
+int config_init_std(&cfg){
+  cfg->D=D;
+  cfg->N_sph = N;
+  cfg->N_species = 0;
+  cfg->kernel = strdup("b_spline");
+  cfg->integrator = strdup("heun");
+  cfg->EoS = strdup("qg");
+  cfg->setup = strdup("ssph_2p1bi");
+  cfg->deriv = strdup("Drv_2p1bi");
+  cfg->hash = strdup(hash);
+  cfg->folder = strdup(folder);
+  cfg->h = 0.1;
+  cfg->kh = 0.1;
+  cfg->ti = 1.0;
+  cfg->tf = 8.0;
+  cfg->dt = 0.025;
+  cfg->Tfo = 0.145;
+  
+  cfg->xmin=(double*)malloc(D*sizeof(double));
+  cfg->xmax=(double*)malloc(D*sizeof(double));
+  cfg->dx=(double*)malloc(D*sizeof(double));
+  
+  for(l=0;l<D;l+=1){
+    cfg->xmin[l]=-20.; cfg->xmax[l]=20.; cfg->dx[l]=0.2;
+  }  
 }
-
