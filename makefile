@@ -7,6 +7,9 @@ gauss_whs: gauss_whs.o splitandfit.o src/splitandfit.h
 gauss_e2s: gauss_e2s.o splitandfit.o src/splitandfit.h 
 	g++ -o gauss_e2s obj/gauss_e2s.o obj/splitandfit.o -lm -lgsl -lgslcblas
 
+gauss_qgp: gauss_qgp.o splitandfit.o src/splitandfit.h 
+	g++ -o gauss_qgp obj/gauss_qgp.o obj/splitandfit.o -lm -lgsl -lgslcblas
+
 gubser: gubser.o splitandfit.o src/splitandfit.h 
 	g++ -o gubser obj/gubser.o obj/splitandfit.o -lm -lgsl -lgslcblas
 
@@ -27,6 +30,9 @@ gauss_whs.o: src/splitandfit.h src/trial-functions.h
 
 gauss_e2s.o: src/splitandfit.h src/trial-functions.h
 	g++ -c src/examples/gauss_e2s.cpp -O3 -o obj/gauss_e2s.o
+
+gauss_qgp.o: src/splitandfit.h src/trial-functions.h
+	g++ -c src/examples/gauss_qgp.cpp -O3 -o obj/gauss_qgp.o
 
 gubser.o: src/splitandfit.h 
 	g++ -c src/examples/gubser.cpp -O3 -o obj/gubser.o

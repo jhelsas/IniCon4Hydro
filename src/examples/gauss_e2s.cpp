@@ -80,7 +80,7 @@ int null_velocity(double *x,size_t dim,void *par,double *u){
 int main(){
   int D=2,Ntri=6,split_type=0;
   int l,err,Npoints,N;
-  double cutoff=10.,xi[D],xf[D],p[11],xv[Ntri*(D+1)*D];
+  double cutoff=0.05,xi[D],xf[D],p[11],xv[Ntri*(D+1)*D];
   double xl[D],xu[D],dx[D];
   double *xp,*x,*u,*S,s,dist,h=0.1;
   conv_wrap wrp;
@@ -91,17 +91,17 @@ int main(){
   ofstream plotfile;
   FILE *sphofile;
   
-  /*  e0 (GeV/fm^3) */ p[0] =1.0*6.2;    
-  /*  x0     fm     */ p[1] =0.0;        
-  /*  y0     fm     */ p[2] =0.0;        
-  /* sigx    fm     */ p[3] =3.5;       
-  /* sigy    fm     */ p[4] =3.5;       
-  /* e0hs (GeV/fm^3)*/ p[5] =0.0*22;  
-  /* x0hs    fm     */ p[6] =0.7;     
-  /* y0hs    fm     */ p[7] =1.25;    
-  /* sigxhs  fm     */ p[8] =0.3;     
-  /* sigyhs  fm     */ p[9] =0.3;     
-  /*  tau    fm     */ p[10] = 1.0;   
+  /*  e0 (GeV/fm^3)  */ p[0] =1.0*6.2;    
+  /*  x0     fm      */ p[1] =0.0;        
+  /*  y0     fm      */ p[2] =0.0;        
+  /* sigx    fm      */ p[3] =3.5;       
+  /* sigy    fm      */ p[4] =3.5;       
+  /* e0hs (GeV/fm^3) */ p[5] =0.0*22;  
+  /* x0hs    fm      */ p[6] =0.7;     
+  /* y0hs    fm      */ p[7] =1.25;    
+  /* sigxhs  fm      */ p[8] =0.3;     
+  /* sigyhs  fm      */ p[9] =0.3;     
+  /*  tau    fm      */ p[10] = 1.0;   
   
   F.f= gauss_e2s; F.dim=D;
   wrp.f2s=e2s_qg; wrp.f2spar=NULL; 

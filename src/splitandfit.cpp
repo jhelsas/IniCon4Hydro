@@ -395,10 +395,9 @@ int print_moving_sph(int D,const char *filename,vector <domain> &dom,
       }
     }
     err=velocity(x,D,par,u);
-    for(l=0;l<D;l+=1){
-      cout << u[l] << " ";
+    for(l=0;l<D;l+=1)
       sphfile << u[l] << " ";
-    }
+      
     sphfile << "\n";
     it++;
     sphfile.flush();
