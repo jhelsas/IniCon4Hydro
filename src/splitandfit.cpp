@@ -375,8 +375,9 @@ int print_moving_sph(int D,const char *filename,vector <domain> &dom,
     return 1;
   N=dom.size();
   sphfile.open(filename);
-  sphfile << D << "  " << N << endl;
+  sphfile << "                                                      \n"; // gambiarra
   for(el=dom.begin();el!=dom.end();el++){
+    if(el->good!=0){ N-=1; continue;}
     sphfile << 1.0 << " " << 1.0 << " " << el->S << " ";
     if(el->type==0){
       for(l=0;l<D;l+=1){ 
@@ -395,11 +396,15 @@ int print_moving_sph(int D,const char *filename,vector <domain> &dom,
     }
     err=velocity(x,D,par,u);
     for(l=0;l<D;l+=1){
+      cout << u[l] << " ";
       sphfile << u[l] << " ";
     }
     sphfile << "\n";
     it++;
+    sphfile.flush();
   }
+  sphfile.seekp(0,ios::beg);
+  sphfile << D << "  " << N ;
   sphfile.close();
   return 0;
 }

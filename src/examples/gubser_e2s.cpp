@@ -113,8 +113,8 @@ int main(){
   cout << "split\n";
   err=domain_split(D,cutoff,dom,F); if(err!=0){ cout << "out: " << err << endl;return err;}
   
-  cout << "clean\n";
-  err=clean_domain(dom);if(err!=0) return err;
+  //cout << "clean\n";
+  //err=clean_domain(dom);if(err!=0) return err;
   
   cout << "print\n";  
   err=print_moving_sph(D,"results/gubser_e2s.dat",dom,gubser_velocity,&par); if(err!=0) return err;

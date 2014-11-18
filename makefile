@@ -4,6 +4,9 @@ domain-spliting: domain-spliting.o splitandfit.o trial-functions.o src/splitandf
 gauss_whs: gauss_whs.o splitandfit.o src/splitandfit.h 
 	g++ -o gauss_whs obj/gauss_whs.o obj/splitandfit.o -lm -lgsl -lgslcblas
 
+gauss_e2s: gauss_e2s.o splitandfit.o src/splitandfit.h 
+	g++ -o gauss_e2s obj/gauss_e2s.o obj/splitandfit.o -lm -lgsl -lgslcblas
+
 gubser: gubser.o splitandfit.o src/splitandfit.h 
 	g++ -o gubser obj/gubser.o obj/splitandfit.o -lm -lgsl -lgslcblas
 
@@ -21,6 +24,9 @@ plot_densities: splitandfit.o trial-functions.o plot_densities.o src/splitandfit
 
 gauss_whs.o: src/splitandfit.h src/trial-functions.h
 	g++ -c src/examples/gauss_whs.cpp -O3 -o obj/gauss_whs.o
+
+gauss_e2s.o: src/splitandfit.h src/trial-functions.h
+	g++ -c src/examples/gauss_e2s.cpp -O3 -o obj/gauss_e2s.o
 
 gubser.o: src/splitandfit.h 
 	g++ -c src/examples/gubser.cpp -O3 -o obj/gubser.o
