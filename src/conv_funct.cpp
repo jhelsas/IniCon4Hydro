@@ -27,7 +27,7 @@ double e2s_qgphr(double epsilon, void *p){
   else if(e1 < epsilon && epsilon <= e2 )
     return ((epsilon+p1)/(e1+p1))*s1;
   else
-    return pow((epsilon-B)/(e2-B),3./4.)*s1;
+    return pow((epsilon-B)/(e2-B),3./4.)*s2;
 }
 
 double e2s_table(double epsilon,void *p){
