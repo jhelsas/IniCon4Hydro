@@ -8,12 +8,12 @@
 
 double e2s_pion(double epsilon,void *p){
   const double C_pi = 0.134828384; /* 3*(hbarc)*((45÷(3x128×π^2))^(1/3)) GeV fm */
-  return pow(epsilon/C_pi,3./4.);
+  return pow(epsilon/(3.0*C_pi),3./4.);
 }
 
 double e2s_qg(double epsilon,void *p){
   const double C_qg = 0.058356312;/* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
-  return pow(epsilon/C_qg,3./4.);
+  return pow(epsilon/(3.0*C_qg),3./4.);
 }
 
 double e2s_qgphr(double epsilon, void *p){
