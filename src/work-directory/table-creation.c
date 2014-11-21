@@ -110,12 +110,12 @@ int load_eos_table(char *filename,double *eos_t){
 int EoS_table(eosp *par, double *eos_t){
   int i,Ne=5,Np=33001;
   double ds,dT,cs2,logs,sp,hp,pp,ep,T,dwds;
-  double hbarc=0.197;
+  double hbarc=0.1973269718;
   
   ds = 0.0005;
   
   logs = log(par->s);
-  if(logs < eos_t[0] || logs > eos_t[Ne*Np-1])
+  if(logs < eos_t[0] || logs > eos_t[Ne*(Np-1)])
     return 1;
   i=(int)( (logs - eos_t[0])/ds );
   par->T = (eos_t[(i+1)*Ne+1]-eos_t[i*Ne+1])*( (logs-eos_t[i*Ne])/ds ) + eos_t[i*Ne+1];
@@ -130,21 +130,109 @@ int EoS_table(eosp *par, double *eos_t){
   return 0;
 }
 
+int load_zoltan_table(char *filename,double *z_table){
+  int i,Nl=18,Ne=5;
+  double T,p,dp,emp,demp,cs2,dcs2,e,de,s,ds;
+  const double hbarc=0.1973269718;
+  FILE *dadosin;
+  
+  dadosin=fopen(filename,"r");
+  for(i=0;i<Nl;i+=1){
+    fscanf(dadosin,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",&T,&p,&dp,&emp,&demp,&cs2,&dcs2,&e,&de,&s,&ds);
+    T=T/1000.;
+    p = (p*T*T*T*T)/(hbarc*hbarc*hbarc);
+    e = (e*T*T*T*T)/(hbarc*hbarc*hbarc);
+    s = (s*T*T*T)/(hbarc*hbarc*hbarc);
+    
+    z_table[i*Ne+0] = log(s);   z_table[i*Ne+1] = T;
+    z_table[i*Ne+2] = p;        z_table[i*Ne+3] = e;
+    z_table[i*Ne+4] = cs2;
+  }
+  fclose(dadosin);
+  return 0;
+}
+
+double lag2w(double x,double xa,double xb,double xc){
+  return ((x-xa)*(x-xb))/((xc-xa)*(xc-xb));
+}
+
+int zoltan_eos(eosp *par, double *eos_t){
+  int good=1,i,Ne=5,Np=18,i1,i2,i3;
+  double cs2,logs,sp,hp,pp,ep,T,dwds;
+  double ls1,ls2,ls3,f1,f2,f3;
+  double hbarc=0.1973269718;
+  
+  logs = log(par->s);
+  if(logs < eos_t[0] || logs > eos_t[Ne*(Np-1)] )
+    return 1;
+    
+  i = Np/2;
+  while(good!=0){
+    if(logs < eos_t[i*Ne])
+      i = (0+i)/2;
+    else if(logs > eos_t[(i+1)*Ne])
+      i = (i+Ne)/2;
+    else{
+      if(i == 0){
+        ls1 = eos_t[Ne*0]; i1 = 0;
+        ls2 = eos_t[Ne*1]; i2 = 1;
+        ls3 = eos_t[Ne*2]; i3 = 2;
+      } else if( i == (Np-2) ){
+	    ls1 = eos_t[Ne*(Np-3)]; i1 = Np-3;
+	    ls2 = eos_t[Ne*(Np-2)]; i2 = Np-2;
+	    ls3 = eos_t[Ne*(Np-1)]; i3 = Np-1;
+      } else {
+        ls1 = eos_t[Ne*(i-1)]; i1 = i-1; 
+        ls2 = eos_t[Ne*i];     i2 = i;
+        ls3 = eos_t[Ne*(i+1)]; i3 = i+1;
+      }
+      good = 0;
+    }
+  }
+  printf("%d %d %d %d\n",i,i1,i2,i3);
+  printf("logs = %lf %lf %lf %lf\n",logs,f1,f2,f3);
+  f1 = lag2w(logs,ls2,ls3,ls1);
+  f2 = lag2w(logs,ls3,ls1,ls2);
+  f3 = lag2w(logs,ls1,ls2,ls3);
+  printf("f1=%lf f2=%lf f3=%lf\n",f1,f2,f3);
+  
+  par->T = f1*eos_t[i1*Ne+1] + f2*eos_t[i2*Ne+1] + f3*eos_t[i3*Ne+1];
+  par->p = f1*eos_t[i1*Ne+2] + f2*eos_t[i2*Ne+2] + f3*eos_t[i3*Ne+2];
+  par->e = f1*eos_t[i1*Ne+3] + f2*eos_t[i2*Ne+3] + f3*eos_t[i3*Ne+3];
+    cs2  = f1*eos_t[i1*Ne+4] + f2*eos_t[i2*Ne+4] + f3*eos_t[i3*Ne+4];
+  par->h = par->e + par->p; 
+  
+  dwds = (cs2+1.)*T;
+  par->hsh=(4.0/3.0)*(par->p); /* verificar isso */
+  
+  return 0;
+}
+
 int main(){
+  int i,Np=18,Ne=5,err;
   const double ei=8.14451245649177e-7,ef=322.538746367931;
-  double logs,lsi,lsf,dls,*eos_t;
+  double logs,lsi,lsf,dls,*eos_t,z_table[5*18];
   eosp point;
   FILE *dadosout;
   
   lsi=log(e2s_qgphr(ei,NULL));
   lsf=log(e2s_qgphr(ef,NULL));
+  err = load_zoltan_table("zoltan.dat",z_table);
+  for(i=0;i<Np;i+=1){
+    printf("%lf %lf %lf %lf %lf\n",z_table[i*Ne+0],z_table[i*Ne+1],z_table[i*Ne+2],z_table[i*Ne+3],z_table[i*Ne+4]);
+  }
   
   dls=0.0005; // ds = 0.0005*hbarc;
   dadosout=fopen("qgphr_table.eos","w");  
   
   for(logs = lsi ; logs < lsf ; logs += dls){
-    point.s = exp(logs);
-    eospS_qgphr(&point);
+	point.s = exp(logs);
+    err=zoltan_eos(&point,z_table); 
+    if(err!=0){
+	  continue;
+	}else {
+	  printf("logs = %lf\n",logs);
+	}
     fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf\n",point.T,point.cs2,point.e,point.p,logs);
   }
   fclose(dadosout);
