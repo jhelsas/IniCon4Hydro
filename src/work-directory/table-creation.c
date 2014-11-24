@@ -226,11 +226,31 @@ int eos_zoltan(eosp *par, void *params){
   static int call_count = 0;
   const int Ne=5,Np=18;
   const double hbarc=0.1973269718;
-  const double ls[18] = {-1.769049, -1.077466, -0.395522, 0.142758, 0.549412, 0.824491, 1.108151, 1.425858, 1.732869, 2.388880, 2.923345, 3.268573, 3.909100, 4.582473, 5.569299, 6.140774, 7.031874, 7.722272 };
-  const double T[18]  = {0.100000, 0.115000, 0.129000, 0.139000, 0.147000, 0.152000, 0.158000, 0.166000, 0.175000, 0.200000, 0.228000, 0.250000, 0.299000, 0.366000, 0.500000, 0.600000, 0.800000, 1.000000 };
-  const double e[18]  = {0.014186, 0.032551, 0.073524, 0.137981, 0.221213, 0.302902, 0.419333, 0.602841, 0.858120, 1.844991, 3.499477, 5.333056, 11.848111, 27.884914, 100.540059, 212.359345, 686.086922, 1707.554136 };
-  const double p[18]  =  {0.002863, 0.006601, 0.013335, 0.022349, 0.033425, 0.043768, 0.059210, 0.087956, 0.131831, 0.335264, 0.742100, 1.235398, 3.058248, 7.893719, 30.585002, 66.288501, 219.633110, 550.530030 };
-  const double cs2[18]=  {0.190000, 0.180000, 0.140000, 0.130000, 0.120000, 0.120000, 0.140000, 0.160000, 0.180000, 0.220000, 0.260000, 0.270000, 0.290000, 0.320000, 0.320000, 0.320000, 0.320000, 0.320000 };
+  const double ls[18] = {-1.769049, -1.077466, -0.395522, 0.142758, 
+	                      0.549412, 0.824491, 1.108151, 1.425858, 
+	                      1.732869, 2.388880, 2.923345, 3.268573, 
+	                      3.909100, 4.582473, 5.569299, 6.140774, 
+	                      7.031874, 7.722272 };
+  const double T[18]  = {0.100000, 0.115000, 0.129000, 0.139000, 
+	                     0.147000, 0.152000, 0.158000, 0.166000, 
+	                     0.175000, 0.200000, 0.228000, 0.250000, 
+	                     0.299000, 0.366000, 0.500000, 0.600000, 
+	                     0.800000, 1.000000 };
+  const double e[18]  = {0.014186, 0.032551, 0.073524, 0.137981, 
+	                     0.221213, 0.302902, 0.419333, 0.602841, 
+	                     0.858120, 1.844991, 3.499477, 5.333056, 
+	                     11.848111, 27.884914, 100.540059, 212.359345, 
+	                     686.086922, 1707.554136 };
+  const double p[18]  =  {0.002863, 0.006601, 0.013335, 0.022349, 
+	                      0.033425, 0.043768, 0.059210, 0.087956, 
+	                      0.131831, 0.335264, 0.742100, 1.235398, 
+	                      3.058248, 7.893719, 30.585002, 66.288501, 
+	                      219.633110, 550.530030 };
+  const double cs2[18]=  {0.190000, 0.180000, 0.140000, 0.130000, 
+	                      0.120000, 0.120000, 0.140000, 0.160000, 
+	                      0.180000, 0.220000, 0.260000, 0.270000, 
+	                      0.290000, 0.320000, 0.320000, 0.320000, 
+	                      0.320000, 0.320000 };
   double logs;
   
   if(call_count==0){
@@ -243,9 +263,12 @@ int eos_zoltan(eosp *par, void *params){
     gsl_spline_init (splp, ls, p, Np);
     gsl_spline_init (sple, ls, e, Np);
     gsl_spline_init (splcs2, ls, cs2, Np);  
+    call_count+=1;
   }
-  call_count+=1;
   
+  if(par->s<0)
+    return (-1);
+    
   logs = log(par->s);
   if(logs < ls[0] || logs > ls[Np-1])
     return 1;
@@ -262,37 +285,56 @@ int eos_zoltan(eosp *par, void *params){
 
 double e2s_zoltanRF(double s,void *params){
   int err;
-  double *e0=(double*)params;
+  double e0=*(double*)params;
   eosp par;
   par.s=s;
   err = eos_zoltan(&par,NULL);
+  if(err!=0)
+    return (-1);
   
-  printf("%lf %lf %lf %lf %lf\n",par.s,par.T,par.e,par.p, par.cs2);
-  printf("s=%lf e =%lf e0 =%lf \n",s,par.e,*e0);
-  scanf("%d",&err);
-  
-  return (par.e - *e0);
+  return (par.e - e0);
 }
 
 const gsl_root_fsolver_type *rsT;
 gsl_root_fsolver *solver=NULL;
     
-double e2s_zoltan(double epsilon, void *p){
+double e2s_zoltan(double e, void *p){
   static int call_count = 0;
-  int status, iter, max_iter;
-  const double lsi = -2.3, lsf=6.5, ei=0.014186, ef=1707.554136;
+  int status, iter, max_iter=100;
+  double lsi = exp(-1.769049),lsf=exp(6.5), ei=0.014186, ef=1707.554136;
   double x_lo,x_hi;
+  double delta,a=-7.73192e-07,b=0.000927288,c=0.194341,d=-0.164113;
   gsl_function F;
   double s;
     
   if(call_count==0){
     rsT = gsl_root_fsolver_brent;
     solver = gsl_root_fsolver_alloc (rsT);
+    call_count +=1;
   }
-  call_count +=1;
   
+  if(e<5.)
+    delta=20.;
+  else if(e < 10.)
+    delta=35.;
+  else if(e < 20.)
+    delta=50.;
+  else if(e<50.)
+    delta= 100.;
+  else if(e<100.)
+    delta = 200.;
+  else 
+    delta = 400;
+  
+  lsi = a*(e*e*e)+b*(e*e)+c*e+e - delta;
+  if(lsi < exp(-1.769049))
+    lsi=0.;
+  lsf = a*(e*e*e)+b*(e*e)+c*e+e + delta;
+  //if(lsf > exp(6.5))
+    //lsf = exp(6.5);
+    
   F.function = &e2s_zoltanRF;
-  F.params = &epsilon;
+  F.params = &e;
   gsl_root_fsolver_set (solver, &F, lsi, lsf);
   do{
     iter++;
@@ -301,22 +343,26 @@ double e2s_zoltan(double epsilon, void *p){
     x_lo = gsl_root_fsolver_x_lower (solver);
     x_hi = gsl_root_fsolver_x_upper (solver);
     status = gsl_root_test_interval (x_lo, x_hi,0, 0.001);
-    if (status == GSL_SUCCESS)
+    if (status == GSL_SUCCESS){
+	  // printf("(s,e) = (%lf,%lf)\n",s,e);
       break;
+    }
   } while (status == GSL_CONTINUE && iter < max_iter);
+  if(iter>=max_iter)
+    printf("max iterations reached\n");  
   
   return s;
 }
 
 int main(){
   int i,Np=18,Ne=5,err;
-  const double ei=0.1,ef=322.538746367931;
+  const double ei=0.1,ef=360.;
   double e,de=0.005,logs,lsi,lsf,dls,*eos_t=NULL,z_table[5*18];
   eosp point;
   FILE *dadosout;
   
-  lsi=-2.3;//log(e2s_qgphr(ei,NULL));
-  lsf= 6.5;//log(e2s_qgphr(ef,NULL));
+  lsi=-1.769049;//log(e2s_qgphr(ei,NULL));
+  lsf= 6.5;     //log(e2s_qgphr(ef,NULL));
     
   err= load_zoltan_table("zoltan.dat",z_table);
   if(err!=0){printf("zoltan table not loaded\n");return err;}
@@ -324,18 +370,18 @@ int main(){
   dls=0.0005; // ds = 0.0005*hbarc;
   dadosout=fopen("zoltan_table.eos","w");  
    
+  
   for(logs = lsi ; logs < lsf ; logs += dls){
     point.s = exp(logs);
     err=eos_zoltan(&point,z_table); 
-    //err=eos_zoltan2(&point,z_table); 
-    //err=eos_zoltan3(&point,z_table); 
     if(err!=0)
       continue;
     fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf\n",point.T,point.cs2,point.e,point.p,logs);
   }
   printf("end of loop\n");
-  fclose(dadosout);
-  /*
+  fclose(dadosout); 
+  
+  de=0.1;
   dadosout = fopen("zoltan_e2s_comparison.dat","w");
   for(e=ei;e<=ef;e+=de){
     logs = e2s_zoltan(e,NULL);
@@ -344,20 +390,21 @@ int main(){
     if(err!=0)
       continue;
     fprintf(dadosout,"%lf %lf %lf\n",logs,e,point.e);
+	printf("e=%lf %lf %lf \n",e,point.e,logs);
   }
   fclose(dadosout);
-  */
+  
   if(eos_t!=NULL)
     free(eos_t);
-    /*
+    
   gsl_spline_free(splT); 
   gsl_spline_free(sple); 
   gsl_spline_free(splp); 
   gsl_spline_free(splcs2);
-  gsl_interp_accel_free(acc); */
+  gsl_interp_accel_free(acc); 
   
-  //if(solver!=NULL)
-  //  gsl_root_fsolver_free (solver);
+  if(solver!=NULL)
+    gsl_root_fsolver_free (solver);
   
   return 0;
 }
