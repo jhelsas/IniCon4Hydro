@@ -231,7 +231,6 @@ int zoltan_eos2(eosp *par, void *params){
   double logs;
   
   if(call_count==0){
-    printf("hello\n");
     acc=gsl_interp_accel_alloc ();
     splT = gsl_spline_alloc (gsl_interp_cspline, 18);
     splp = gsl_spline_alloc (gsl_interp_cspline, 18);
