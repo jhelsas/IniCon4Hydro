@@ -216,27 +216,33 @@ int zoltan_eos(eosp *par, double *eos_t){
   return 0;
 }
 
+gsl_interp_accel *acc; // global variables
+gsl_spline *splT, *splp ,*sple ,*splcs2 ;
+
 int zoltan_eos2(eosp *par, void *params){
+  static int call_count = 0;
   const int Ne=5,Np=18;
+  const double hbarc=0.1973269718;
   const double ls[18] = {-1.769049, -1.077466, -0.395522, 0.142758, 0.549412, 0.824491, 1.108151, 1.425858, 1.732869, 2.388880, 2.923345, 3.268573, 3.909100, 4.582473, 5.569299, 6.140774, 7.031874, 7.722272};
   const double T[18]  = {0.100000, 0.115000, 0.129000, 0.139000, 0.147000, 0.152000, 0.158000, 0.166000, 0.175000, 0.200000, 0.228000, 0.250000, 0.299000, 0.366000, 0.500000, 0.600000, 0.800000, 1.000000};
   const double e[18]  = {0.014186, 0.032551, 0.073524, 0.137981, 0.221213, 0.302902, 0.419333, 0.602841, 0.858120, 1.844991, 3.499477, 5.333056, 11.848111, 27.884914, 100.540059, 212.359345, 686.086922, 1707.554136 };
   const double p[18]  = {0.230951, 0.922534, 1.604478, 2.142758, 2.549412, 2.824491, 3.108151, 3.425858, 3.732869, 4.388880, 4.923345, 5.268573, 5.909100, 6.582473, 7.569299, 8.140774, 9.031874, 9.722272 };
   const double cs2[18]= {0.190000, 0.180000, 0.140000, 0.130000, 0.120000, 0.120000, 0.140000, 0.160000, 0.180000, 0.220000, 0.260000, 0.270000, 0.290000, 0.320000, 0.320000, 0.320000, 0.320000, 0.320000 };
-  int good=1,i,i1,i2,i3;
-  double logs,dwds;
-  double ls1,ls2,ls3,f1,f2,f3;
-  double hbarc=0.1973269718;
-  gsl_interp_accel *acc= gsl_interp_accel_alloc (); ;
-  gsl_spline *splT = gsl_spline_alloc (gsl_interp_cspline, Np);
-  gsl_spline *splp = gsl_spline_alloc (gsl_interp_cspline, Np);
-  gsl_spline *sple = gsl_spline_alloc (gsl_interp_cspline, Np);
-  gsl_spline *splcs2 = gsl_spline_alloc (gsl_interp_cspline, Np);
-      
-  gsl_spline_init (splT, ls, T, Np);
-  gsl_spline_init (splp, ls, p, Np);
-  gsl_spline_init (sple, ls, e, Np);
-  gsl_spline_init (splcs2, ls, cs2, Np);  
+  double logs;
+  
+  if(call_count==0){
+    printf("hello\n");
+    acc=gsl_interp_accel_alloc ();
+    splT = gsl_spline_alloc (gsl_interp_cspline, 18);
+    splp = gsl_spline_alloc (gsl_interp_cspline, 18);
+    sple = gsl_spline_alloc (gsl_interp_cspline, 18);
+    splcs2 = gsl_spline_alloc (gsl_interp_cspline, 18);
+    gsl_spline_init (splT, ls, T, Np);
+    gsl_spline_init (splp, ls, p, Np);
+    gsl_spline_init (sple, ls, e, Np);
+    gsl_spline_init (splcs2, ls, cs2, Np);  
+  }
+  call_count+=1;
   
   logs = log(par->s);
   if(logs < ls[0] || logs > ls[Np-1])
@@ -249,12 +255,6 @@ int zoltan_eos2(eosp *par, void *params){
   par->h = par->e + par->p; 
   par->hsh=(par->cs2)*(par->h); 
   
-  gsl_spline_free(splT); 
-  gsl_spline_free(sple); 
-  gsl_spline_free(splp); 
-  gsl_spline_free(splcs2);
-  gsl_interp_accel_free(acc); 
-        
   return 0;
 }
 
@@ -286,6 +286,12 @@ int main(){
   
   if(eos_t!=NULL)
     free(eos_t);
+    
+  gsl_spline_free(splT); 
+  gsl_spline_free(sple); 
+  gsl_spline_free(splp); 
+  gsl_spline_free(splcs2);
+  gsl_interp_accel_free(acc); 
   
   return 0;
 }
