@@ -1,12 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_spline.h>
+
+typedef struct EoSstable{
+  int Ne,Np;
+  double *eos_t;
+}  EoSstable;
 
 typedef struct eosp{
   double T,s,p,e,h,hsh,cs2;
 } eosp;
 
-int eospS_landau(eosp *par){  
+int eospS_landau(eosp *par,void* params){  
   const double C_pi = 0.134828384; /* 3*(hbarc)*((45÷(3x128×π^2))^(1/3)) GeV fm */
   par->p=C_pi*pow(par->s,4.0/3.0);
   par->e=3.0*(par->p);
@@ -21,7 +28,7 @@ double e2s_pion(double epsilon,void *p){
   return pow(epsilon/(3.0*C_pi),3./4.);
 }
 
-int eospS_qg(eosp *par){  
+int eospS_qg(eosp *par,void* params){  
   const double C_qg = 0.058356312; /* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
   par->p=C_qg*pow(par->s,4.0/3.0);
   par->e=3.0*(par->p);
@@ -36,7 +43,7 @@ double e2s_qg(double epsilon,void *p){
   return pow(epsilon/(3.0*C_qg),3./4.);
 }
 
-int eospS_qgphr(eosp *par){
+int eospS_qgphr(eosp *par,void* params){
   const double s1=2.1, s2=9.4125, C_hrg=0.1149;
   const double B=0.32, e1=0.28, e2=1.45;
   const double beta0=0.2, p1=0.056,Tc=(e1+p1)/s1;
@@ -121,14 +128,16 @@ int EoS_table(eosp *par, double *eos_t){
   par->T = (eos_t[(i+1)*Ne+1]-eos_t[i*Ne+1])*( (logs-eos_t[i*Ne])/ds ) + eos_t[i*Ne+1];
   par->p = (eos_t[(i+1)*Ne+2]-eos_t[i*Ne+2])*( (logs-eos_t[i*Ne])/ds ) + eos_t[i*Ne+2];
   par->e = (eos_t[(i+1)*Ne+3]-eos_t[i*Ne+3])*( (logs-eos_t[i*Ne])/ds ) + eos_t[i*Ne+3];
-    cs2  = (eos_t[(i+1)*Ne+4]-eos_t[i*Ne+4])*( (logs-eos_t[i*Ne])/ds ) + eos_t[i*Ne+4];
+  par->cs2  = (eos_t[(i+1)*Ne+4]-eos_t[i*Ne+4])*( (logs-eos_t[i*Ne])/ds ) + eos_t[i*Ne+4];
   par->h = par->e + par->p;
   
-  dwds = (cs2+1.)*T;
+  dwds = (par->cs2+1.)*(par->T);
   par->hsh=(4.0/3.0)*(par->p); /* verificar isso */
   
   return 0;
 }
+
+
 
 int load_zoltan_table(char *filename,double *z_table){
   int i,Nl=18,Ne=5;
@@ -155,10 +164,10 @@ int load_zoltan_table(char *filename,double *z_table){
 double lag2w(double x,double xa,double xb,double xc){
   return ((x-xa)*(x-xb))/((xc-xa)*(xc-xb));
 }
-
+  
 int zoltan_eos(eosp *par, double *eos_t){
   int good=1,i,iup,idown,Ne=5,Np=18,i1,i2,i3;
-  double cs2,logs,sp,hp,pp,ep,T,dwds;
+  double logs,dwds;
   double ls1,ls2,ls3,f1,f2,f3;
   double hbarc=0.1973269718;
   
@@ -201,11 +210,60 @@ int zoltan_eos(eosp *par, double *eos_t){
   par->cs2=f1*eos_t[i1*Ne+4] + f2*eos_t[i2*Ne+4] + f3*eos_t[i3*Ne+4];
   par->h = par->e + par->p; 
   
-  dwds = (cs2+1.)*T;
+  dwds = (par->cs2+1.)*(par->T);
   par->hsh=(4.0/3.0)*(par->p); /* verificar isso */
-  
+    
   return 0;
 }
+
+int zoltan_eos2(eosp *par, double *eos_t){
+  static int call_count=0;
+  const int Ne=5,Np=18;
+  int good=1,i,i1,i2,i3;
+  double logs,dwds;
+  double ls1,ls2,ls3,f1,f2,f3;
+  double hbarc=0.1973269718;
+  gsl_interp_accel *acc = gsl_interp_accel_alloc ();
+  gsl_spline *splT = gsl_spline_alloc (gsl_interp_cspline, Np);
+  gsl_spline *splp = gsl_spline_alloc (gsl_interp_cspline, Np);
+  gsl_spline *sple = gsl_spline_alloc (gsl_interp_cspline, Np);
+  gsl_spline *splcs2 = gsl_spline_alloc (gsl_interp_cspline, Np);
+  double T[Np],e[Np],p[Np],cs2[Np],ls[Np];
+  
+  for(i=0;i<Np;i+=1){
+   ls[i] = eos_t[i*Ne]; T[i] = eos_t[i*Ne+1];
+   p[i] = eos_t[i*Ne+2];e[i] = eos_t[i*Ne+3]; cs2[i] = eos_t[i*Ne+4];
+  }
+    
+  gsl_spline_init (splT, ls, T, Np);
+  gsl_spline_init (splp, ls, p, Np);
+  gsl_spline_init (sple, ls, e, Np);
+  gsl_spline_init (splcs2, ls, cs2, Np);
+    
+  logs = log(par->s);
+  if(logs < eos_t[0] || logs > eos_t[Ne*(Np-1)] )
+    return 1;
+  
+  par->T = gsl_spline_eval (splT, logs, acc);
+  par->p = gsl_spline_eval (splp, logs, acc);
+  par->e = gsl_spline_eval (sple, logs, acc);
+  par->cs2 = gsl_spline_eval (splcs2, logs, acc);
+  par->h = par->e + par->p; 
+  
+  dwds = (par->cs2+1.)*(par->T);
+  par->hsh=(4.0/3.0)*(par->p); /* verificar isso */
+  
+  gsl_spline_free(splT); 
+  gsl_spline_free(sple); 
+  gsl_spline_free(splp); 
+  gsl_spline_free(splcs2);
+  gsl_interp_accel_free(acc); 
+    
+  call_count+=1;
+    
+  return 0;
+}
+
 
 #define EoS zoltan_eos
 #define e2s e2s_zoltan
@@ -217,21 +275,21 @@ int main(){
   eosp point;
   FILE *dadosout;
   
-  lsi=log(e2s_qgphr(ei,NULL));
-  lsf=log(e2s_qgphr(ef,NULL));
+  lsi=-10.;//log(e2s_qgphr(ei,NULL));
+  lsf= 6.5;//log(e2s_qgphr(ef,NULL));
+    
+  err= load_zoltan_table("zoltan.dat",z_table);
     
   dls=0.0005; // ds = 0.0005*hbarc;
-  dadosout=fopen("zoltan_table.eos","w");  
+  dadosout=fopen("zoltan_table2.eos","w");  
    
   for(logs = lsi ; logs < lsf ; logs += dls){
-    //printf("\nlogs=%lf - in\n",logs);
     point.s = exp(logs);
-    err=zoltan_eos(&point,z_table); 
+    err=zoltan_eos2(&point,z_table); 
     if(err!=0){
       continue;
     }
     fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf\n",point.T,point.cs2,point.e,point.p,logs);
-    //printf("out\n");
   }
   printf("end of loop\n");
   fclose(dadosout);
