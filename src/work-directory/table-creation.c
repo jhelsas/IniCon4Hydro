@@ -22,6 +22,7 @@ int eospS_landau(eosp *par,void* params){
   par->h=(par->e)+(par->p);
   par->hsh=(4.0/3.0)*(par->p);
   par->T=((par->h)/(par->s)); 
+  par->cs2 = 1./3.;
   return 0;
 }
 
@@ -31,17 +32,18 @@ double e2s_pion(double epsilon,void *p){
 }
 
 int eospS_qg(eosp *par,void* params){  
-  const double C_qg = 0.058356312; /* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
+  const double C_qg = 0.01948439; /* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
   par->p=C_qg*pow(par->s,4.0/3.0);
   par->e=3.0*(par->p);
   par->h=(par->e)+(par->p);
   par->hsh=(4.0/3.0)*(par->p);
   par->T=((par->h)/(par->s)); 
+  par->cs2 = 1./3.;
   return 0;
 }
 
 double e2s_qg(double epsilon,void *p){
-  const double C_qg = 0.058356312;/* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
+  const double C_qg = 0.01948439;/* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
   return pow(epsilon/(3.0*C_qg),3./4.);
 }
 
@@ -60,6 +62,7 @@ int eospS_qgphr(eosp *par,void* params){
     par->T     = C_hrg*(1.+beta0)*pow(par->s,beta0);
     par->h   = C_hrg*(1.+beta0)*pow(par->s,1.+beta0);
     par->hsh = C_hrg*(1.+beta0)*beta0*pow(par->s,1.+beta0);
+    par->cs2 = (par->hsh)/(par->h);
   }
   else if( s1<= par->s && par->s < s2 ){
     par->e   = Tc*(par->s)-p1;
@@ -67,6 +70,7 @@ int eospS_qgphr(eosp *par,void* params){
     par->T     = (e1+p1)/s1;
     par->h   = (Tc/s1)*(par->s);
     par->hsh = 0.;
+    par->cs2 = (par->hsh)/(par->h);
   }
   else {
     par->e   = C_qgp*pow(par->s,4./3.)+B;
@@ -74,6 +78,7 @@ int eospS_qgphr(eosp *par,void* params){
     par->T   = (4./3.)*C_qgp*pow(par->s,1./3.);
     par->h   = (4./3.)*C_qgp*pow(par->s,4./3.);
     par->hsh = (4./9.)*C_qgp*pow(par->s,4./3.);
+    par->cs2 = (par->hsh)/(par->h);
   }
     
   return 0;
@@ -93,23 +98,23 @@ double e2s_qgphr(double epsilon, void *p){
     return pow((epsilon-B)/(e2-B),3./4.)*s2;
 }
 
-int load_eos_table(char *filename,double *eos_t){
+int load_eos_table(char *filename,double **eos_t){
   const int Np=33001,Ne=5;
   int i;
   FILE *eosfile;
   double T,e,p,cs2,logs;
   eosfile = fopen(filename,"r");
   
-  eos_t = (double*)malloc(Ne*Np*sizeof(double));
+  *eos_t = (double*)malloc(Ne*Np*sizeof(double));
   
   if(eosfile==NULL)
     return 1;
     
   for(i=0;i<Np;i+=1){
     fscanf(eosfile,"%lf %lf %lf %lf %lf",&T,&cs2,&e,&p,&logs);
-    eos_t[i*Ne+0] = logs; eos_t[i*Ne+1] = T;
-    eos_t[i*Ne+2] = p;    eos_t[i*Ne+3] = e;
-    eos_t[i*Ne+4] = cs2;
+    (*eos_t)[i*Ne+0] = logs; (*eos_t)[i*Ne+1] = T;
+    (*eos_t)[i*Ne+2] = p;    (*eos_t)[i*Ne+3] = e;
+    (*eos_t)[i*Ne+4] = cs2;
   }
   
   fclose(eosfile);
@@ -124,17 +129,18 @@ int EoS_table(eosp *par, double *eos_t){
   ds = 0.0005;
   
   logs = log(par->s);
-  if(logs < eos_t[0] || logs > eos_t[Ne*(Np-1)])
-    return 1;
+  
+  if(logs < eos_t[0] || logs > eos_t[Ne*(Np-1)]){
+    printf("%lf %lf %lf\n", eos_t[0],logs,eos_t[Ne*(Np-1)]);
+    return 1;}
+    
   i=(int)( (logs - eos_t[0])/ds );
   par->T = (eos_t[(i+1)*Ne+1]-eos_t[i*Ne+1])*( (logs-eos_t[i*Ne])/ds ) + eos_t[i*Ne+1];
   par->p = (eos_t[(i+1)*Ne+2]-eos_t[i*Ne+2])*( (logs-eos_t[i*Ne])/ds ) + eos_t[i*Ne+2];
   par->e = (eos_t[(i+1)*Ne+3]-eos_t[i*Ne+3])*( (logs-eos_t[i*Ne])/ds ) + eos_t[i*Ne+3];
   par->cs2  = (eos_t[(i+1)*Ne+4]-eos_t[i*Ne+4])*( (logs-eos_t[i*Ne])/ds ) + eos_t[i*Ne+4];
   par->h = par->e + par->p;
-  
-  dwds = (par->cs2+1.)*(par->T);
-  par->hsh=(4.0/3.0)*(par->p); /* verificar isso */
+  par->hsh=(par->cs2)*(par->h); 
   
   return 0;
 }
@@ -211,9 +217,7 @@ int zoltan_eos_old(eosp *par, double *eos_t){
   par->e = f1*eos_t[i1*Ne+3] + f2*eos_t[i2*Ne+3] + f3*eos_t[i3*Ne+3];
   par->cs2=f1*eos_t[i1*Ne+4] + f2*eos_t[i2*Ne+4] + f3*eos_t[i3*Ne+4];
   par->h = par->e + par->p; 
-  
-  dwds = (par->cs2+1.)*(par->T);
-  par->hsh=(4.0/3.0)*(par->p); /* verificar isso */
+  par->hsh=(par->cs2)*(par->h); 
     
   return 0;
 }
@@ -330,8 +334,6 @@ double e2s_zoltan(double e, void *p){
   if(lsi < exp(-1.769049))
     lsi=0.;
   lsf = a*(e*e*e)+b*(e*e)+c*e+e + delta;
-  //if(lsf > exp(6.5))
-    //lsf = exp(6.5);
     
   F.function = &e2s_zoltanRF;
   F.params = &e;
@@ -343,21 +345,19 @@ double e2s_zoltan(double e, void *p){
     x_lo = gsl_root_fsolver_x_lower (solver);
     x_hi = gsl_root_fsolver_x_upper (solver);
     status = gsl_root_test_interval (x_lo, x_hi,0, 0.001);
-    if (status == GSL_SUCCESS){
-	  // printf("(s,e) = (%lf,%lf)\n",s,e);
+    if (status == GSL_SUCCESS)
       break;
-    }
   } while (status == GSL_CONTINUE && iter < max_iter);
   if(iter>=max_iter)
     printf("max iterations reached\n");  
   
   return s;
 }
-
-int main(){
-  int i,Np=18,Ne=5,err;
-  const double ei=0.1,ef=360.;
-  double e,de=0.005,logs,lsi,lsf,dls,*eos_t=NULL,z_table[5*18];
+ 
+int print_zoltan(){
+  int err;
+  double lsi,lsf,logs,dls,z_table[5*18];
+  double e,de,ei=0.01,ef=360;
   eosp point;
   FILE *dadosout;
   
@@ -366,11 +366,9 @@ int main(){
     
   err= load_zoltan_table("zoltan.dat",z_table);
   if(err!=0){printf("zoltan table not loaded\n");return err;}
-  
   dls=0.0005; // ds = 0.0005*hbarc;
-  dadosout=fopen("zoltan_table.eos","w");  
-   
   
+  dadosout=fopen("results/zoltan_table.eos","w");  
   for(logs = lsi ; logs < lsf ; logs += dls){
     point.s = exp(logs);
     err=eos_zoltan(&point,z_table); 
@@ -378,25 +376,20 @@ int main(){
       continue;
     fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf\n",point.T,point.cs2,point.e,point.p,logs);
   }
-  printf("end of loop\n");
   fclose(dadosout); 
   
-  de=0.1;
-  dadosout = fopen("zoltan_e2s_comparison.dat","w");
+  de=0.01;
+  dadosout = fopen("results/zoltan_e2s_comparison.dat","w");
   for(e=ei;e<=ef;e+=de){
     logs = e2s_zoltan(e,NULL);
     point.s = logs;
     err=eos_zoltan(&point,NULL); 
     if(err!=0)
       continue;
-    fprintf(dadosout,"%lf %lf %lf\n",logs,e,point.e);
-	printf("e=%lf %lf %lf \n",e,point.e,logs);
+    fprintf(dadosout,"%lf %lf %lf %lf %lf\n",logs,e,point.e,e-point.e,point.T);
   }
   fclose(dadosout);
   
-  if(eos_t!=NULL)
-    free(eos_t);
-    
   gsl_spline_free(splT); 
   gsl_spline_free(sple); 
   gsl_spline_free(splp); 
@@ -405,6 +398,123 @@ int main(){
   
   if(solver!=NULL)
     gsl_root_fsolver_free (solver);
+    
+  return 0;
+} 
+ 
+int print_pasi(){
+  int err;
+  double lsi,lsf,logs,dls,*eos_t;
+  double e,de,ei=0.01,ef=360;
+  eosp point;
+  FILE *dadosout;
+  
+  lsi=-1.769049;//log(e2s_qgphr(ei,NULL));
+  lsf= 6.5;     //log(e2s_qgphr(ef,NULL));
+  dls=0.0005; // ds = 0.0005*hbarc;
+  
+  err=load_eos_table("EoS_pasi.eos",&eos_t);
+  if(err!=0){printf("not loading pasi EoS\n");return 1;}
+  
+  dadosout=fopen("results/pasi_table.eos","w");  
+  for(logs = lsi ; logs < lsf ; logs += dls){
+    point.s = exp(logs);
+    err=EoS_table(&point,eos_t); 
+    if(err!=0){printf("skiped %lf\n",logs);continue;}
+    fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf\n",point.T,point.cs2,point.e,point.p,logs);
+  }
+  fclose(dadosout); 
+  
+  return 0;
+}
+ 
+int print_qg(){
+  int err;
+  double lsi,lsf,logs,dls,z_table[5*18];
+  double e,de,ei=0.01,ef=360;
+  eosp point;
+  FILE *dadosout;
+  
+  lsi=-1.769049;//log(e2s_qgphr(ei,NULL));
+  lsf= 6.5;     //log(e2s_qgphr(ef,NULL));
+  dls=0.0005; // ds = 0.0005*hbarc;
+    
+  dadosout=fopen("results/qg_table.eos","w");  
+  for(logs = lsi ; logs < lsf ; logs += dls){
+    point.s = exp(logs);
+    err=eospS_qg(&point,z_table); 
+    //if(err!=0)
+    //  continue;
+    fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf\n",point.T,point.cs2,point.e,point.p,logs);
+  }
+  fclose(dadosout); 
+  
+  de=0.01;
+  dadosout = fopen("results/qg_e2s_comparison.dat","w");
+  for(e=ei;e<=ef;e+=de){
+    logs = e2s_qg(e,NULL);
+    point.s = logs;
+    err=eospS_qg(&point,NULL); 
+    //if(err!=0)
+    //  continue;
+    fprintf(dadosout,"%lf %lf %lf %lf %lf\n",logs,e,point.e,e-point.e,point.T);
+  }
+  fclose(dadosout);
+  
+  return 0;
+} 
+ 
+int print_qgphr(){
+  int err;
+  double lsi,lsf,logs,dls,z_table[5*18];
+  double e,de,ei=0.01,ef=360;
+  eosp point;
+  FILE *dadosout;
+  
+  lsi=-1.769049;//log(e2s_qgphr(ei,NULL));
+  lsf= 6.5;     //log(e2s_qgphr(ef,NULL));
+  dls=0.0005; // ds = 0.0005*hbarc;
+    
+  dadosout=fopen("results/qgphr_table.eos","w");  
+  for(logs = lsi ; logs < lsf ; logs += dls){
+    
+    point.s = exp(logs);
+    err=eospS_qgphr(&point,NULL); 
+    if(err!=0)
+      continue;
+    fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf\n",point.T,point.cs2,point.e,point.p,logs);
+  }
+  fclose(dadosout); 
+  
+  de=0.01;
+  dadosout = fopen("results/qgphr_e2s_comparison.dat","w");
+  for(e=ei;e<=ef;e+=de){
+    logs = e2s_qgphr(e,NULL);
+    point.s = logs;
+    err=eospS_qgphr(&point,NULL); 
+    if(err!=0)
+      continue;
+    fprintf(dadosout,"%lf %lf %lf %lf %lf\n",logs,e,point.e,e-point.e,point.T);
+  }
+  fclose(dadosout);
+  
+  return 0;
+} 
+
+int main(){
+  int i,Np=18,Ne=5,err;
+  const double ei=0.01,ef=360.;
+  double e,de=0.005,logs,lsi,lsf,dls,*eos_t=NULL,z_table[5*18];
+  eosp point;
+  FILE *dadosout;
+  
+  err=print_zoltan();
+  err=print_pasi();
+  err=print_qg();
+  err=print_qgphr();
+  
+  if(eos_t!=NULL)
+    free(eos_t);
   
   return 0;
 }
