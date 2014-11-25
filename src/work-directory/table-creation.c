@@ -259,6 +259,10 @@ int eos_zoltan(eosp *par, void *params){
   
   if(call_count==0){
     acc=gsl_interp_accel_alloc ();
+    //splT = gsl_spline_alloc (gsl_interp_steffen, 18);
+    //splp = gsl_spline_alloc (gsl_interp_steffen, 18);
+    //sple = gsl_spline_alloc (gsl_interp_steffen, 18);
+    //splcs2 = gsl_spline_alloc (gsl_interp_steffen, 18);
     splT = gsl_spline_alloc (gsl_interp_cspline, 18);
     splp = gsl_spline_alloc (gsl_interp_cspline, 18);
     sple = gsl_spline_alloc (gsl_interp_cspline, 18);
