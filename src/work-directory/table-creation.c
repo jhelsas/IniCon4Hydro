@@ -15,8 +15,19 @@ typedef struct eosp{
   double T,s,p,e,h,hsh,cs2;
 } eosp;
 
+typedef struct SPHeq_particle
+{
+  int D,id,*ind,fo; 
+  double ni,rho,q,S,s,s_p,sigma,Nb,Nc;
+  double rho_p,e_p,p_p,h_p,hsh_p,T,nb,nc,cs2;
+  double *x,*u,*v,*grads;
+  double Ta,rhopa,spa,*xa,*ua,*gradsa;
+  double Tb,rhopb,spb,*xb,*ub,*gradsb;
+  double Tc,rhopc,spc,*xc,*uc,*gradsc;
+} SPHeq_particle;
+
 int eospS_landau(eosp *par,void* params){  
-  const double C_pi = 0.134828384; /* 3*(hbarc)*((45÷(3x128×π^2))^(1/3)) GeV fm */
+  const double C_pi = 0.134828384; 
   par->p=C_pi*pow(par->s,4.0/3.0);
   par->e=3.0*(par->p);
   par->h=(par->e)+(par->p);
@@ -26,13 +37,30 @@ int eospS_landau(eosp *par,void* params){
   return 0;
 }
 
+int EoS_pi(SPHeq_particle *par)
+{	  
+  const double Cpi = 0.134828384; 
+  const double etacharg_qg;
+  par->p_p=Cpi*pow(par->s_p,4.0/3.0);
+  par->e_p=3.0*(par->p_p);
+  par->h_p=(par->e_p)+(par->p_p);
+  par->hsh_p=(4.0/3.0)*(par->p_p);
+  par->T=((par->h_p)/(par->s_p)); 
+  par->cs2 = 1./3.;
+  par->nc = (par->q)*etacharg_qg*(par->s_p); 
+  par->Nc = (par->nc)/(par->rho);
+  
+  return 0;
+}
+
 double e2s_pion(double epsilon,void *p){
   const double C_pi = 0.134828384; /* 3*(hbarc)*((45÷(3x128×π^2))^(1/3)) GeV fm */
   return pow(epsilon/(3.0*C_pi),3./4.);
 }
 
 int eospS_qg(eosp *par,void* params){  
-  const double C_qg = 0.01948439; /* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
+  const double C_qg = 0.0179276286445;
+  //const double C_qg = 0.01948439; /* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
   par->p=C_qg*pow(par->s,4.0/3.0);
   par->e=3.0*(par->p);
   par->h=(par->e)+(par->p);
@@ -42,16 +70,34 @@ int eospS_qg(eosp *par,void* params){
   return 0;
 }
 
+int EoS_qg(SPHeq_particle *par)
+{	  
+  //const double Cqg = 0.01948439;  
+  const double Cqg = 0.0179276286445;
+  const double etacharg_qg;
+  par->p_p=Cqg*pow(par->s_p,4.0/3.0);
+  par->e_p=3.0*(par->p_p);
+  par->h_p=(par->e_p)+(par->p_p);
+  par->hsh_p=(4.0/3.0)*(par->p_p);
+  par->T=((par->h_p)/(par->s_p)); 
+  par->cs2 = 1./3.;
+  par->nc = (par->q)*etacharg_qg*(par->s_p); 
+  par->Nc = (par->nc)/(par->rho);
+  
+  return 0;
+}
+
 double e2s_qg(double epsilon,void *p){
-  const double C_qg = 0.01948439;/* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
+  //const double C_qg = 0.01948439; /* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */  
+  const double C_qg = 0.0179276286445;
   return pow(epsilon/(3.0*C_qg),3./4.);
 }
 
 int eospS_qgphr(eosp *par,void* params){
-  const double s1=2.1, s2=9.4125, C_hrg=0.1149;
+  const double s1=2.1, s2=9.4125, C_hrg=0.1149; // (s1,s2) alternativo : (2.4,10.7571)
   const double B=0.32, e1=0.28, e2=1.45;
-  const double beta0=0.2, p1=0.056,Tc=(e1+p1)/s1;
-  const double C_qgp = (e2-B)/pow(s2,4./3.);
+  const double beta0=0.2, p1=0.056,Tc=(e1+p1)/s1; // Tc atual: 0.160 
+  const double C_qgp = (e2-B)/pow(s2,4./3.); // livro : 0.0538961130616 | atual: 0.0568597733934
   
   if(par->s < 0.)
     return 1;
@@ -84,11 +130,50 @@ int eospS_qgphr(eosp *par,void* params){
   return 0;
 }
 
-double e2s_qgphr(double epsilon, void *p){
+int EoS_qgp(SPHeq_particle *par){
   const double s1=2.1, s2=9.4125, C_hrg=0.1149;
   const double B=0.32, e1=0.28, e2=1.45;
   const double beta0=0.2, p1=0.056,Tc=(e1+p1)/s1;
   const double C_qgp = (e2-B)/pow(s2,4./3.);
+  
+  if(par->s_p < 0.)
+    return 1;
+  
+  if( par->s_p < s1 ){
+    par->e_p   = C_hrg*pow(par->s_p,1.+beta0);
+    par->p_p   = C_hrg*beta0*pow(par->s_p,1.+beta0);
+    par->T     = C_hrg*(1.+beta0)*pow(par->s_p,beta0);
+    par->h_p   = C_hrg*(1.+beta0)*pow(par->s_p,1.+beta0);
+    par->hsh_p = C_hrg*(1.+beta0)*beta0*pow(par->s_p,1.+beta0);
+    par->cs2 = (par->hsh_p)/(par->h_p);
+  }
+  else if( s1<= par->s_p && par->s_p < s2 ){
+    par->e_p   = Tc*(par->s_p)-p1;
+    par->p_p   = p1;
+    par->T     = (e1+p1)/s1;
+    par->h_p   = (Tc/s1)*(par->s_p);
+    par->hsh_p = 0.;
+    par->cs2 = (par->hsh_p)/(par->h_p);
+  }
+  else {
+    par->e_p   = C_qgp*pow(par->s_p,4./3.)+B;
+    par->p_p   = (1./3.)*C_qgp*pow(par->s_p,4./3.)-B;
+    par->T     = (4./3.)*C_qgp*pow(par->s_p,1./3.);
+    par->h_p   = (4./3.)*C_qgp*pow(par->s_p,4./3.);
+    par->hsh_p = (4./9.)*C_qgp*pow(par->s_p,4./3.);
+    par->cs2 = (par->hsh_p)/(par->h_p);
+  }
+  par->nc = 0.0; 
+  par->Nc = 0.0;
+    
+  return 0;
+}
+
+double e2s_qgphr(double epsilon, void *p){
+  const double s1=2.1, s2=9.4125, C_hrg=0.1149;
+  const double B=0.32, e1=0.28, e2=1.45;
+  const double beta0=0.2, p1=0.056,Tc=(e1+p1)/s1;
+  const double C_qgp = (e2-B)/pow(s2,4./3.); // 0.0189532577978
   
   if(epsilon <= e1 )
     return pow(epsilon/C_hrg,1./(1.+beta0));
@@ -226,7 +311,7 @@ int zoltan_eos_old(eosp *par, double *eos_t){
 gsl_interp_accel *acc; // global variables
 gsl_spline *splT, *splp ,*sple ,*splcs2 ;
 
-int eos_zoltan(eosp *par, void *params){
+int eos_zoltan_old2(eosp *par, void *params){
   static int call_count = 0;
   const int Ne=5,Np=18;
   const double hbarc=0.1973269718;
@@ -291,6 +376,130 @@ int eos_zoltan(eosp *par, void *params){
   return 0;
 }
 
+int eos_zoltan(eosp *par, void *params){
+  static int call_count = 0;
+  const int Ne=5,Np=18;
+  const double hbarc=0.1973269718;
+  const double ls[18] = {-1.769049, -1.077466, -0.395522, 0.142758, 
+	                      0.549412, 0.824491, 1.108151, 1.425858, 
+	                      1.732869, 2.388880, 2.923345, 3.268573, 
+	                      3.909100, 4.582473, 5.569299, 6.140774, 
+	                      7.031874, 7.722272 };
+	                      
+  const double T[18]  = {0.100, 0.115, 0.129, 0.139,0.147, 0.152, 0.158, 
+	                     0.166, 0.175, 0.200, 0.228,0.250, 0.299, 0.366, 
+	                     0.500, 0.600,0.800, 1.000 };
+  const double e[18]  = {1.09,1.43,2.04,2.84,3.64,4.36,5.17,6.1,7.03,
+	                     8.86,9.95,10.49,11.39,11.94,12.36,12.59,
+	                     12.87,13.12 };
+  const double p[18]  =  {0.22,0.29,0.37,0.46,0.55,0.63,0.73,0.89,
+	                      1.08,1.61,2.11,2.43,2.94,3.38,3.76,3.93,
+	                      4.12,4.23 };
+  const double cs2[18]=  {0.19,0.18,0.14,0.13,0.12,0.12,0.14,0.16,
+	                      0.18,0.22,0.26,0.27,0.29,0.32,0.32,0.32,
+	                      0.32,0.32 };
+  double logs;
+  
+  if(call_count==0){
+    acc=gsl_interp_accel_alloc ();
+    //splT = gsl_spline_alloc (gsl_interp_steffen, 18);
+    //splp = gsl_spline_alloc (gsl_interp_steffen, 18);
+    //sple = gsl_spline_alloc (gsl_interp_steffen, 18);
+    //splcs2 = gsl_spline_alloc (gsl_interp_steffen, 18);
+    splT = gsl_spline_alloc (gsl_interp_cspline, 18);
+    splp = gsl_spline_alloc (gsl_interp_cspline, 18);
+    sple = gsl_spline_alloc (gsl_interp_cspline, 18);
+    splcs2 = gsl_spline_alloc (gsl_interp_cspline, 18);
+    gsl_spline_init (splT, ls, T, Np);
+    gsl_spline_init (splp, ls, p, Np);
+    gsl_spline_init (sple, ls, e, Np);
+    gsl_spline_init (splcs2, ls, cs2, Np);  
+    call_count+=1;
+  }
+  
+  if(par->s<0)
+    return (-1);
+    
+  logs = log(par->s);
+  if(logs < ls[0] || logs > ls[Np-1])
+    return 1;
+  
+  par->T = gsl_spline_eval (splT, logs, acc);
+  par->p = gsl_spline_eval (splp, logs, acc);
+  par->e = gsl_spline_eval (sple, logs, acc);
+  par->cs2 = gsl_spline_eval (splcs2, logs, acc);
+  par->p *= (par->T)*(par->T/hbarc)*(par->T/hbarc)*(par->T/hbarc);
+  par->e *= (par->T)*(par->T/hbarc)*(par->T/hbarc)*(par->T/hbarc);
+  par->h = par->e + par->p; 
+  par->hsh=(par->cs2)*(par->h); 
+  
+  return 0;
+}
+
+int EoS_zoltan(SPHeq_particle *par){
+  static int call_count = 0;
+  const int Ne=5,Np=18;
+  const double hbarc=0.1973269718;
+  const double ls[18] = {-1.769049, -1.077466, -0.395522, 0.142758, 
+	                      0.549412, 0.824491, 1.108151, 1.425858, 
+	                      1.732869, 2.388880, 2.923345, 3.268573, 
+	                      3.909100, 4.582473, 5.569299, 6.140774, 
+	                      7.031874, 7.722272 };
+	                      
+  const double T[18]  = {0.100, 0.115, 0.129, 0.139,0.147, 0.152, 0.158, 
+	                     0.166, 0.175, 0.200, 0.228,0.250, 0.299, 0.366, 
+	                     0.500, 0.600,0.800, 1.000 };
+  const double e[18]  = {1.09,1.43,2.04,2.84,3.64,4.36,5.17,6.1,7.03,
+	                     8.86,9.95,10.49,11.39,11.94,12.36,12.59,
+	                     12.87,13.12 };
+  const double p[18]  =  {0.22,0.29,0.37,0.46,0.55,0.63,0.73,0.89,
+	                      1.08,1.61,2.11,2.43,2.94,3.38,3.76,3.93,
+	                      4.12,4.23 };
+  const double cs2[18]=  {0.19,0.18,0.14,0.13,0.12,0.12,0.14,0.16,
+	                      0.18,0.22,0.26,0.27,0.29,0.32,0.32,0.32,
+	                      0.32,0.32 };
+  double logs;
+  
+  if(call_count==0){
+    acc=gsl_interp_accel_alloc ();
+    //splT = gsl_spline_alloc (gsl_interp_steffen, 18);
+    //splp = gsl_spline_alloc (gsl_interp_steffen, 18);
+    //sple = gsl_spline_alloc (gsl_interp_steffen, 18);
+    //splcs2 = gsl_spline_alloc (gsl_interp_steffen, 18);
+    splT = gsl_spline_alloc (gsl_interp_cspline, 18);
+    splp = gsl_spline_alloc (gsl_interp_cspline, 18);
+    sple = gsl_spline_alloc (gsl_interp_cspline, 18);
+    splcs2 = gsl_spline_alloc (gsl_interp_cspline, 18);
+    gsl_spline_init (splT, ls, T, Np);
+    gsl_spline_init (splp, ls, p, Np);
+    gsl_spline_init (sple, ls, e, Np);
+    gsl_spline_init (splcs2, ls, cs2, Np);  
+    call_count+=1;
+  }
+  
+  if(par->s_p<0)
+    return (-1);
+    
+  logs = log(par->s_p);
+  if(logs < ls[0] || logs > ls[Np-1])
+    return 1;
+    
+  
+  par->T = gsl_spline_eval (splT, logs, acc);
+  par->p_p = gsl_spline_eval (splp, logs, acc);
+  par->e_p = gsl_spline_eval (sple, logs, acc);
+  par->cs2 = gsl_spline_eval (splcs2, logs, acc);
+  par->p_p *= (par->T)*(par->T/hbarc)*(par->T/hbarc)*(par->T/hbarc);
+  par->e_p *= (par->T)*(par->T/hbarc)*(par->T/hbarc)*(par->T/hbarc);
+  par->h_p = par->e_p + par->p_p; 
+  par->hsh_p=(par->cs2)*(par->h_p); 
+  
+  par->nc = 0.0; 
+  par->Nc = 0.0;
+    
+  return 0;
+}
+
 double e2s_zoltanRF(double s,void *params){
   int err;
   double e0=*(double*)params;
@@ -309,7 +518,7 @@ gsl_root_fsolver *solver=NULL;
 double e2s_zoltan(double e, void *p){
   static int call_count = 0;
   int status, iter, max_iter=100;
-  double lsi = exp(-1.769049),lsf=exp(6.5), ei=0.014186, ef=1707.554136;
+  double lsi = exp(-1.769049)-400.,lsf=exp(6.5)+400., ei=0.014186, ef=1707.554136;
   double x_lo,x_hi;
   double delta,a=-7.73192e-07,b=0.000927288,c=0.194341,d=-0.164113;
   gsl_function F;
@@ -320,7 +529,7 @@ double e2s_zoltan(double e, void *p){
     solver = gsl_root_fsolver_alloc (rsT);
     call_count +=1;
   }
-  
+  /*
   if(e<5.)
     delta=20.;
   else if(e < 10.)
@@ -337,7 +546,7 @@ double e2s_zoltan(double e, void *p){
   lsi = a*(e*e*e)+b*(e*e)+c*e+e - delta;
   if(lsi < exp(-1.769049))
     lsi=0.;
-  lsf = a*(e*e*e)+b*(e*e)+c*e+e + delta;
+  lsf = a*(e*e*e)+b*(e*e)+c*e+e + delta;*/
     
   F.function = &e2s_zoltanRF;
   F.params = &e;
@@ -362,6 +571,8 @@ int print_zoltan(){
   int err;
   double lsi,lsf,logs,dls,z_table[5*18];
   double e,de,ei=0.01,ef=360;
+  const double hbarc=0.1973269718;
+  SPHeq_particle par; 
   eosp point;
   FILE *dadosout;
   
@@ -375,10 +586,18 @@ int print_zoltan(){
   dadosout=fopen("results/zoltan_table.eos","w");  
   for(logs = lsi ; logs < lsf ; logs += dls){
     point.s = exp(logs);
-    err=eos_zoltan(&point,z_table); 
+    par.s_p = point.s;
+    err=eos_zoltan(&point,z_table);
+    err=EoS_zoltan(&par);
     if(err!=0)
       continue;
-    fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf\n",point.T,point.cs2,point.e,point.p,logs);
+    fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf %.10lf %.10lf ",
+            point.T,point.cs2,point.e,point.p,logs,
+            (pow(hbarc,3)*point.e)/pow(point.T,4),
+            (pow(hbarc,3)*point.p)/pow(point.T,4));
+    fprintf(dadosout,"%lf %lf %lf %lf %lf %lf %lf\n",par.T,par.cs2,par.e_p,par.p_p,
+            (pow(hbarc,3)*par.e_p)/pow(par.T,4),
+            (pow(hbarc,3)*par.p_p)/pow(par.T,4));
   }
   fclose(dadosout); 
   
@@ -410,7 +629,9 @@ int print_pasi(){
   int err;
   double lsi,lsf,logs,dls,*eos_t;
   double e,de,ei=0.01,ef=360;
+  const double hbarc=0.1973269718;
   eosp point;
+  SPHeq_particle par; 
   FILE *dadosout;
   
   lsi=-1.769049;//log(e2s_qgphr(ei,NULL));
@@ -423,6 +644,7 @@ int print_pasi(){
   dadosout=fopen("results/pasi_table.eos","w");  
   for(logs = lsi ; logs < lsf ; logs += dls){
     point.s = exp(logs);
+    par.s_p = point.s;
     err=EoS_table(&point,eos_t); 
     if(err!=0){printf("skiped %lf\n",logs);continue;}
     fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf\n",point.T,point.cs2,point.e,point.p,logs);
@@ -436,7 +658,9 @@ int print_qg(){
   int err;
   double lsi,lsf,logs,dls,z_table[5*18];
   double e,de,ei=0.01,ef=360;
+  const double hbarc=0.1973269718;
   eosp point;
+  SPHeq_particle par; 
   FILE *dadosout;
   
   lsi=-1.769049;//log(e2s_qgphr(ei,NULL));
@@ -447,9 +671,16 @@ int print_qg(){
   for(logs = lsi ; logs < lsf ; logs += dls){
     point.s = exp(logs);
     err=eospS_qg(&point,z_table); 
+    err=EoS_qg(&par);
     //if(err!=0)
     //  continue;
-    fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf\n",point.T,point.cs2,point.e,point.p,logs);
+    fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf %.10lf %.10lf ",
+            point.T,point.cs2,point.e,point.p,logs,
+            (pow(hbarc,3)*point.e)/pow(point.T,4),
+            (pow(hbarc,3)*point.p)/pow(point.T,4));
+    fprintf(dadosout,"%lf %lf %lf %lf %lf %lf %lf\n",par.T,par.cs2,par.e_p,par.p_p,
+            (pow(hbarc,3)*par.e_p)/pow(par.T,4),
+            (pow(hbarc,3)*par.p_p)/pow(par.T,4));
   }
   fclose(dadosout); 
   
@@ -472,7 +703,9 @@ int print_qgphr(){
   int err;
   double lsi,lsf,logs,dls,z_table[5*18];
   double e,de,ei=0.01,ef=360;
+  const double hbarc=0.1973269718;
   eosp point;
+  SPHeq_particle par; 
   FILE *dadosout;
   
   lsi=-1.769049;//log(e2s_qgphr(ei,NULL));
@@ -483,10 +716,18 @@ int print_qgphr(){
   for(logs = lsi ; logs < lsf ; logs += dls){
     
     point.s = exp(logs);
+    par.s_p = point.s;
     err=eospS_qgphr(&point,NULL); 
+    err=EoS_qgp(&par);
     if(err!=0)
       continue;
-    fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf\n",point.T,point.cs2,point.e,point.p,logs);
+    fprintf(dadosout,"%.10lf %.10lf %.10lf %.10lf %.10lf %.10lf %.10lf ",
+            point.T,point.cs2,point.e,point.p,logs,
+            (pow(hbarc,3)*point.e)/pow(point.T,4),
+            (pow(hbarc,3)*point.p)/pow(point.T,4));
+    fprintf(dadosout,"%lf %lf %lf %lf %lf %lf %lf\n",par.T,par.cs2,par.e_p,par.p_p,
+            (pow(hbarc,3)*par.e_p)/pow(par.T,4),
+            (pow(hbarc,3)*par.p_p)/pow(par.T,4));
   }
   fclose(dadosout); 
   

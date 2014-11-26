@@ -15,9 +15,16 @@ cubic_dome
 sph-dens
 plot_densities
 src/work-directory/table-creation
+src/work-directory/brendt
 
 #ignore acessory file types
 *~
 *.dat
 *.eos
 *.cfg
+*.aux
+*.log
+*.tex
+*.jpg
+*.pfg
+*.eps

@@ -1,0 +1,110 @@
+hbarc=0.1973269718
+set key bottom right
+set xr [0:45]
+set xl '$\varepsilon$ ($GeV / fm^3$)'
+set yl '$p/\varepsilon$'
+plot '../qg_table.eos' using 3:($4/$3) w l title 'massless'
+replot '../qgphr_table.eos' using 3:($4/$3) w l title 'HRG + 1st PhT + qgp bag'
+replot '../pasi_table.eos' using 3:($4/$3) w l title 'EoS pasi from Koide program'
+replot '../zoltan_table.eos' using 3:($4/$3) w l title 'EoS Zoltan - PHSD'
+replot '../../zoltan.dat' using (($8*(($1/1000)**4))/(hbarc**3)):($2/$8) title 'EoS Zoltan - Original data points'
+set term epslatex standalone color colortext 12
+set out 'p2eratio.tex'
+replot
+set term qt
+replot
+set xl '$\varepsilon$ ($GeV/fm^3$)'
+set yl '$(\hbar c)^3 p/T^4$'
+plot '../qg_table.eos' using 3:(($4*hbarc**3)/($1**4)) w l title 'massless'
+replot '../qgphr_table.eos' using 3:(($4*hbarc**3)/($1**4)) w l title 'HRG + 1st PhT + qgp bag'
+replot '../pasi_table.eos' using 3:(($4*hbarc**3)/($1**4)) w l title 'EoS pasi from Koide program'
+replot '../zoltan_table.eos' using 3:(($4*hbarc**3)/($1**4)) w l title 'EoS Zoltan - PHSD'
+replot '../../zoltan.dat' using (($8*(($1/1000)**4))/(hbarc**3)):2:3 w yerrorbars title 'EoS Zoltan - Original data points'
+set term epslatex standalone color colortext 12
+set out 'pressure_by_energy.tex'
+replot
+set term qt
+replot
+set xl '$\varepsilon$ ($GeV/fm^3$)'
+set yl '$(\hbar c)^3\varepsilon/T^4$'
+plot '../qg_table.eos' using 3:(($3*hbarc**3)/($1**4)) w l title 'massless'
+replot '../qgphr_table.eos' using 3:(($3*hbarc**3)/($1**4)) w l title 'HRG + 1st PhT + qgp bag'
+replot '../pasi_table.eos' using 3:(($3*hbarc**3)/($1**4)) w l title 'EoS pasi from Koide program'
+replot '../zoltan_table.eos' using 3:(($3*hbarc**3)/($1**4)) w l title 'EoS Zoltan - PHSD'
+replot '../../zoltan.dat' using (($8*(($1/1000)**4))/(hbarc**3)):8:9 with yerrorbars title 'EoS Zoltan - Original data points'
+set term epslatex standalone color colortext 12
+set out 'energy_by_energy.tex'
+replot
+set term qt
+replot
+set xl '$\varepsilon$ ($GeV/fm^3$)'
+set yl '$(\hbar c)^3 s/T^3$'
+plot '../qg_table.eos' using 3:((exp($5)*hbarc**3)/($1**3)) w l title 'massless'
+replot '../qgphr_table.eos' using 3:((exp($5)*hbarc**3)/($1**3)) w l title 'HRG + 1st PhT + qgp bag'
+replot '../pasi_table.eos' using 3:((exp($5)*hbarc**3)/($1**3)) w l title 'EoS pasi from Koide program'
+replot '../zoltan_table.eos' using 3:((exp($5)*hbarc**3)/($1**3)) w l title 'EoS Zoltan - PHSD'
+replot '../../zoltan.dat' using (($8*(($1/1000)**4))/(hbarc**3)):10:11 with yerrorbars title 'EoS Zoltan - Original data points'
+set term epslatex standalone color colortext 12
+set out 'entropy_by_energy.tex'
+replot
+set term qt
+replot
+set xl '$\varepsilon$ ($GeV/fm^3$)'
+set yl '$c_s^2$'
+plot '../qg_table.eos' using 3:2 w l title 'massless'
+replot '../qgphr_table.eos' using 3:2 w l title 'HRG + 1st PhT + qgp bag'
+replot '../pasi_table.eos' using 3:2 w l title 'EoS pasi from Koide program'
+replot '../zoltan_table.eos' using 3:2 w l title 'EoS Zoltan - PHSD'
+replot '../../zoltan.dat' using (($8*(($1/1000)**4))/(hbarc**3)):6:7 with yerrorbars title 'EoS Zoltan - Original data points'
+set term epslatex standalone color colortext 12
+set out 'soundspeed_by_energy.tex'
+replot
+set term qt
+replot
+
+set xr [0.1:0.6]
+set xl 'T (GeV)'
+set yl '$(\hbar c)^3 p/T^4$'
+plot '../qg_table.eos' using 1:(($4*hbarc**3)/($1**4)) w l title 'massless'
+replot '../qgphr_table.eos' using 1:(($4*hbarc**3)/($1**4)) w l title 'HRG + 1st PhT + qgp bag'
+replot '../pasi_table.eos' using 1:(($4*hbarc**3)/($1**4)) w l title 'EoS pasi from Koide program'
+replot '../zoltan_table.eos' using 1:(($4*hbarc**3)/($1**4)) w l title 'EoS Zoltan - PHSD'
+replot '../../zoltan.dat' using ($1/1000):2:3 w yerrorbars title 'EoS Zoltan - Original data points'
+set term epslatex standalone color colortext 12
+set out 'pressure_by_temperature.tex'
+replot
+set term qt
+replot
+set yl '$(\hbar c)^3\varepsilon/T^4$'
+plot '../qg_table.eos' using 1:(($3*hbarc**3)/($1**4)) w l title 'massless'
+replot '../qgphr_table.eos' using 1:(($3*hbarc**3)/($1**4)) w l title 'HRG + 1st PhT + qgp bag'
+replot '../pasi_table.eos' using 1:(($3*hbarc**3)/($1**4)) w l title 'EoS pasi from Koide program'
+replot '../zoltan_table.eos' using 1:(($3*hbarc**3)/($1**4)) w l title 'EoS Zoltan - PHSD'
+replot '../../zoltan.dat' using ($1/1000):8:9 with yerrorbars title 'EoS Zoltan - Original data points'
+set term epslatex standalone color colortext 12
+set out 'energy_by_temperature.tex'
+replot
+set term qt
+replot
+set yl '$(\hbar c)^3 s/T^3$'
+plot '../qg_table.eos' using 1:((exp($5)*hbarc**3)/($1**3)) w l title 'massless'
+replot '../qgphr_table.eos' using 1:((exp($5)*hbarc**3)/($1**3)) w l title 'HRG + 1st PhT + qgp bag'
+replot '../pasi_table.eos' using 1:((exp($5)*hbarc**3)/($1**3)) w l title 'EoS pasi from Koide program'
+replot '../zoltan_table.eos' using 1:((exp($5)*hbarc**3)/($1**3)) w l title 'EoS Zoltan - PHSD'
+replot '../../zoltan.dat' using ($1/1000):10:11 with yerrorbars title 'EoS Zoltan - Original data points'
+set term epslatex standalone color colortext 12
+set out 'entropy_by_temperature.tex'
+replot
+set term qt
+replot
+set yl '$c_s^2$'
+plot '../qg_table.eos' using 1:2 w l title 'massless'
+replot '../qgphr_table.eos' using 1:2 w l title 'HRG + 1st PhT + qgp bag'
+replot '../pasi_table.eos' using 1:2 w l title 'EoS pasi from Koide program'
+replot '../zoltan_table.eos' using 1:2 w l title 'EoS Zoltan - PHSD'
+replot '../../zoltan.dat' using ($1/1000):6:7 with yerrorbars title 'EoS Zoltan - Original data points'
+set term epslatex standalone color colortext 12
+set out 'soundspeed_by_temperature.tex'
+replot
+set term qt
+replot
