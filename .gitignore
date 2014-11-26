@@ -1,0 +1,5 @@
+# ignoring directories
+obj/
+src/work-directory/results
+results/
+
