@@ -14,6 +14,7 @@ example
 cubic_dome
 sph-dens
 plot_densities
+src/work-directory/table-creation
 
 #ignore acessory file types
 *~
