@@ -10,6 +10,9 @@ gauss_e2s: gauss_e2s.o splitandfit.o src/splitandfit.h
 gauss_qgp: gauss_qgp.o splitandfit.o src/splitandfit.h 
 	g++ -o gauss_qgp obj/gauss_qgp.o obj/splitandfit.o -lm -lgsl -lgslcblas
 
+gauss_zoltan: gauss_zoltan.o splitandfit.o conv_funct.o src/splitandfit.h 
+	g++ -o gauss_zoltan obj/gauss_zoltan.o obj/splitandfit.o obj/conv_funct.o -lm -lgsl -lgslcblas
+
 gubser: gubser.o splitandfit.o src/splitandfit.h 
 	g++ -o gubser obj/gubser.o obj/splitandfit.o -lm -lgsl -lgslcblas
 
@@ -34,6 +37,9 @@ gauss_e2s.o: src/splitandfit.h src/trial-functions.h
 gauss_qgp.o: src/splitandfit.h src/trial-functions.h
 	g++ -c src/examples/gauss_qgp.cpp -O3 -o obj/gauss_qgp.o
 
+gauss_zoltan.o: src/splitandfit.h src/trial-functions.h
+	g++ -c src/examples/gauss_zoltan.cpp -O3 -o obj/gauss_zoltan.o
+
 gubser.o: src/splitandfit.h 
 	g++ -c src/examples/gubser.cpp -O3 -o obj/gubser.o
 
@@ -54,6 +60,9 @@ trial-functions.o: src/splitandfit.h
 
 sph-dens.o: src/splitandfit.h 
 	g++ -c src/sph-dens.cpp -o obj/sph-dens.o
+
+conv_funct.o: src/conv_funct.h
+	g++ -c src/conv_funct.cpp -O3 -o obj/conv_funct.o
 
 plot_densities.o:
 	g++ -c src/plot_densities.cpp -o obj/plot_densities.o
