@@ -252,6 +252,8 @@ int domain_split(int D,double cutoff,vector <domain>& dom, gsl_monte_function F)
   id=0;
   while(id<dom.size()){
     
+    //cout << "id: " << id << endl;
+    
     lpar->mdel=&(dom[id]);
     
     S=0.0;

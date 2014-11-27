@@ -152,6 +152,9 @@ double e2s_zoltan(double e, void *p){
     lsi=0.;
   lsf = a*(e*e*e)+b*(e*e)+c*e+e + delta;*/
     
+  if(e < ei)
+    return (e/ei)*0.170495053; // 0.170495053 * (e/ei)
+    
   F.function = &e2s_zoltanRF;
   F.params = &e;
   gsl_root_fsolver_set (solver, &F, lsi, lsf);
@@ -165,6 +168,7 @@ double e2s_zoltan(double e, void *p){
     if (status == GSL_SUCCESS)
       break;
   } while (status == GSL_CONTINUE && iter < max_iter);
+  
   if(iter>=max_iter)
     printf("max iterations reached\n");  
   
