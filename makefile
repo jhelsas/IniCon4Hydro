@@ -16,6 +16,9 @@ gauss_zoltan: gauss_zoltan.o splitandfit.o conv_funct.o src/splitandfit.h
 gubser: gubser.o splitandfit.o src/splitandfit.h 
 	g++ -o gubser obj/gubser.o obj/splitandfit.o -lm -lgsl -lgslcblas
 
+phsd_ico: phsd_ico.o splitandfit.o src/splitandfit.h 
+	g++ -o phsd_ico obj/phsd_ico.o obj/splitandfit.o -lm -lgsl -lgslcblas `root-config --libs`
+
 example: example.o splitandfit.o src/splitandfit.h
 	g++ -o example obj/example.o obj/splitandfit.o -lm -lgsl -lgslcblas
 
@@ -42,6 +45,9 @@ gauss_zoltan.o: src/splitandfit.h src/trial-functions.h
 
 gubser.o: src/splitandfit.h 
 	g++ -c src/examples/gubser.cpp -O3 -o obj/gubser.o
+
+phsd_ico.o: src/splitandfit.h 
+	g++ -c src/examples/phsd_ico.cpp -O3 -o obj/phsd_ico.o `root-config --cflags`
 
 example.o: src/splitandfit.h 
 	g++ -c src/examples/example.cpp -O3 -o obj/example.o
