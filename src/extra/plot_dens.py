@@ -16,9 +16,10 @@ fdens = sys.argv[1]
 data = np.loadtxt(fdens)
 x  = data[:,0]
 y  = data[:,1]
-d1 = data[:,2]
-d2 = data[:,3]
-df = data[:,4]
+z  = data[:,2]
+d1 = data[:,3]
+d2 = data[:,4]
+df = data[:,5]
 
 fig1 = plt.figure( figsize=(8, 6) )
 gr1 = fig1.add_subplot(1, 1, 1, projection='3d')

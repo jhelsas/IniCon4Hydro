@@ -37,6 +37,7 @@ double phsd_edens(double *x,size_t dim, void *par){
   if(zz>zmin && zz<zmax) value = (double)(hTable->Interpolate(xx,yy,zz));
   //printf("x: %2.8lf   y: %2.8lf   z: %2.8lf     e: %2.8lf\n",xx,yy,zz,value);
 
+  //value = cw->f2s(value,cw->f2spar);
   return value;
 
 }
@@ -76,7 +77,7 @@ int main(){
     // define function properties
     int D=3,Ntri=6,split_type=0;
     int l,err,Npoints,N;
-    double cutoff=0.02,xi[D],xf[D],xv[Ntri*(D+1)*D];
+    double cutoff=2,xi[D],xf[D],xv[Ntri*(D+1)*D];
     double xl[D],xu[D],dx[D];
     double *xp,*x,*u,*S,s,dist,h=0.1;
     wparams par;
@@ -89,7 +90,7 @@ int main(){
     // get phsd snapshot "table" (TH3D ROOT histogram)
     TFile *fICo = new TFile("phsd-ico_NUM30_t013.root","READ");
     TH3D *hEdens = (TH3D*)fICo->Get("hEdensXYZ");
-    
+  
     F.f= phsd_edens; 
     F.dim=D;
     par.p=(void*)hEdens; 
@@ -97,7 +98,7 @@ int main(){
 
     if(split_type==0){
         cout << "init\n";
-        for(l=0;l<D;l+=1){xi[l]=-4.0;xf[l]=4.0;}
+        for(l=0;l<D;l+=1){xi[l]=-10.0;xf[l]=10.0;}
         err=init_cube(xi,xf,dom,D);if(err!=0) return err; 
     }
     else if(split_type==1){
@@ -120,7 +121,7 @@ int main(){
     cout << "reading\n";
     err=sph_read("results/phsd_ico.dat",&D,&N,&x,&u,&S);if(err!=0) return err;
 
-    for(l=0;l<D;l+=1) { xl[l]=-4.0; dx[l]=0.15; xu[l]=4.0+1.01*dx[l]; }
+    for(l=0;l<2;l+=1) { xl[l]=-10.0; dx[l]=0.2; xu[l]=10.0+1.01*dx[l]; }
 
     err=create_grid(D,&xp,xl,xu,dx,&Npoints);if(err!=0) return err;         
 

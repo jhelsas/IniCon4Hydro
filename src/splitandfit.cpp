@@ -252,7 +252,7 @@ int domain_split(int D,double cutoff,vector <domain>& dom, gsl_monte_function F)
   id=0;
   while(id<dom.size()){
     
-    //cout << "id: " << id << endl;
+    cout << "id: " << id << endl;
     
     lpar->mdel=&(dom[id]);
     
@@ -809,6 +809,7 @@ int create_grid(int D,double **xpo,double *xl,double *xu,
   }
   else if(D==3){
     int i,j,k,Nx,Ny,Nz;
+    /*
     Nx=(int)((xu[0]-xl[0])/dx[0]);
     Ny=(int)((xu[1]-xl[1])/dx[1]);
     Nz=(int)((xu[2]-xl[2])/dx[2]);
@@ -820,7 +821,18 @@ int create_grid(int D,double **xpo,double *xl,double *xu,
           xp[((k*Ny+j)*Nx+i)*D+1] = xl[1]+((double)j)*(dx[1]);
           xp[((k*Ny+j)*Nx+i)*D+2] = xl[2]+((double)k)*(dx[2]);
         }
-      
+      */
+    Nx=(int)((xu[0]-xl[0])/dx[0]);
+    Ny=(int)((xu[1]-xl[1])/dx[1]);
+    Nz=1;
+    xp=new double [Nx*Ny*Nz*D];
+    for(k=0;k<Nz;k+=1)
+      for(j=0;j<Ny;j+=1)
+        for(i=0;i<Nx;i+=1){
+          xp[((k*Ny+j)*Nx+i)*D+0] = xl[0]+((double)i)*(dx[0]);
+          xp[((k*Ny+j)*Nx+i)*D+1] = xl[1]+((double)j)*(dx[1]);
+          xp[((k*Ny+j)*Nx+i)*D+2] = 0.0;
+        }
     *Np=Nx*Ny*Nz;
   }
   *xpo=xp;
