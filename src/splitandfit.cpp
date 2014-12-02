@@ -379,7 +379,7 @@ int print_moving_sph(int D,const char *filename,vector <domain> &dom,
   sphfile.open(filename);
   sphfile << "                                                      \n"; // gambiarra
   for(el=dom.begin();el!=dom.end();el++){
-    if(el->good!=0){ N-=1; continue;}
+    if(el->good!=0 || el->S <= 0.){ N-=1; continue;}
     sphfile << 1.0 << " " << 1.0 << " " << el->S << " ";
     if(el->type==0){
       for(l=0;l<D;l+=1){ 
@@ -868,25 +868,26 @@ int sph_read(char* filename,int *Dout,int *Nout,double **xout,double **uout,doub
   return 0;
 }
 
-#define DIM 2
-
-//#define A_d 1.  
- #define A_d (15.)/(7.*M_PI) 
-// #define A_d (3.0)/(2.0*MYPI) 
-
-double w_bspline(double r,double h)
+double w_bspline(int D,double r,double h)
 {
-	double R;
+	double R,A_d=0.;
 	if(h<=0.) exit(10);
+	
+	if(D==1)
+	  A_d=1;
+	else if(D==2)
+	  A_d=(15.)/(7.*M_PI);
+	else if(D==3)
+	  A_d=(3.0)/(2.0*M_PI);
+	
 	R=fabs(r)/h;
 	if(R>=2.)
 		return 0;
 	else if((1.<=R)&&(R<2.))
-		return (A_d)*(1./6.)*(2.-R)*(2.-R)*(2.-R)/pow(h,DIM);
+		return (A_d)*(1./6.)*(2.-R)*(2.-R)*(2.-R)/pow(h,D);
 	else
-		return ((A_d)*((2./3.)-(R*R) + (R*R*R/2.0)))/pow(h,DIM);
+		return ((A_d)*((2./3.)-(R*R) + (R*R*R/2.0)))/pow(h,D);
 }
-
 int sph_dens(int D,int N,int Npoints,double *xp,double *x,
              double *S,double h,double xl[],double xu[],
              double (*tf)(double*,size_t,void*),char* filename,void *p)
@@ -913,7 +914,7 @@ int sph_dens(int D,int N,int Npoints,double *xp,double *x,
         dist+=(xp[k*D+l]-x[i*D+l])*(xp[k*D+l]-x[i*D+l]);
       dist=sqrt(dist);
       
-      s+=S[i]*w_bspline(dist,h);
+      s+=S[i]*w_bspline(D,dist,h);
     }
     a=tf(xp+k*D,D,&par);
     for(l=0;l<D;l+=1)
@@ -962,8 +963,8 @@ int sph_density_ploting(int D,double tau,int Npoints,double *xp,double xl[],doub
         dist += (x[i*D+l]-x[j*D+l])*(x[i*D+l]-x[j*D+l]);
       dist=sqrt(dist);
       
-      si[i] += S[j]*w_bspline(dist,h);
-      rhoi[i]+=  1.0*w_bspline(dist,h);
+      si[i] += S[j]*w_bspline(D,dist,h);
+      rhoi[i]+=  1.0*w_bspline(D,dist,h);
 	}
 	u0=1.;
 	for(l=0;l<D;l+=1)
@@ -991,9 +992,9 @@ int sph_density_ploting(int D,double tau,int Npoints,double *xp,double xl[],doub
       dist=sqrt(dist);
       u0=sqrt(u0);
       
-      s   += S[i]*w_bspline(dist,h);
-      s_p += (si[i]/rhoi[i])*w_bspline(dist,h);
-      e_p += (ei[i]/rhoi[i])*w_bspline(dist,h);
+      s   += S[i]*w_bspline(D,dist,h);
+      s_p += (si[i]/rhoi[i])*w_bspline(D,dist,h);
+      e_p += (ei[i]/rhoi[i])*w_bspline(D,dist,h);
     }
     for(l=0;l<D;l+=1)
       plotfile << xp[k*D+l] << " ";

@@ -16,6 +16,9 @@ gauss_zoltan: gauss_zoltan.o splitandfit.o conv_funct.o src/splitandfit.h
 gubser: gubser.o splitandfit.o src/splitandfit.h 
 	g++ -o gubser obj/gubser.o obj/splitandfit.o -lm -lgsl -lgslcblas
 
+rotconfsol: rotconfsol.o splitandfit.o 
+	g++ -o rotconfsol obj/rotconfsol.o obj/splitandfit.o -lm -lgsl -lgslcblas
+
 phsd_ico: phsd_ico.o splitandfit.o src/splitandfit.h 
 	g++ -o phsd_ico obj/phsd_ico.o obj/splitandfit.o -lm -lgsl -lgslcblas `root-config --libs`
 
@@ -43,8 +46,11 @@ gauss_qgp.o: src/splitandfit.h src/trial-functions.h
 gauss_zoltan.o: src/splitandfit.h src/trial-functions.h
 	g++ -c src/examples/gauss_zoltan.cpp -O3 -o obj/gauss_zoltan.o
 
-gubser.o: src/splitandfit.h 
+gubser.o: src/splitandfit.h src/trial-functions.h
 	g++ -c src/examples/gubser.cpp -O3 -o obj/gubser.o
+
+rotconfsol.o: src/splitandfit.h src/trial-functions.h
+	g++ -c src/examples/rotating_conformal_soliton.cpp -O3 -o obj/rotconfsol.o
 
 phsd_ico.o: src/splitandfit.h 
 	g++ -c src/examples/phsd_ico.cpp -O3 -o obj/phsd_ico.o `root-config --cflags`

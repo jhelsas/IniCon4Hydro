@@ -23,7 +23,7 @@ typedef struct conv_wrap{
 
 double e2s_qg(double epsilon,void *p){
   const double C_qg =  0.0179276286445;/* 3*(hbarc)*((45÷(37x128×π^2))^(1/3)) GeV fm */ 
-  return pow(epsilon/C_qg,3./4.);
+  return pow(epsilon/(3.0*C_qg),3./4.);
 }
  
 double gauss_e2s(double x[],size_t dim,void *par){
