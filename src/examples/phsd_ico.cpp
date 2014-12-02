@@ -30,15 +30,22 @@ double phsd_edens(double *x,size_t dim, void *par){
   double yy = x[1];
   double zz = x[2];
 
-  TH3D *hTable = (TH3D*)(lpar->p);
-  double zmin = hTable->GetZaxis()->GetBinCenter(1);
-  double zmax = hTable->GetZaxis()->GetBinCenter(hTable->GetNbinsZ());
-  double value = 0.;
-  if(zz>zmin && zz<zmax) value = (double)(hTable->Interpolate(xx,yy,zz));
-  //printf("x: %2.8lf   y: %2.8lf   z: %2.8lf     e: %2.8lf\n",xx,yy,zz,value);
+  //TH3D *hTable = (TH3D*)(lpar->p);
+  TH3D **p = (TH3D**)(lpar->p);
+  TH3D *hEdens = *&p[0];
+  TH3D *hGamma = *&p[1];
+  double zmin = hEdens->GetZaxis()->GetBinCenter(1);
+  double zmax = hEdens->GetZaxis()->GetBinCenter(hEdens->GetNbinsZ());
+  double edens = 0.;
+  double gamma = 1.;
+  if(zz>zmin && zz<zmax) {
+    edens = (double)(hEdens->Interpolate(xx,yy,zz));
+    gamma = hGamma->Interpolate(xx,yy,zz);
+  }
+  printf("x: %2.8lf   y: %2.8lf   z: %2.8lf     e: %2.8lf     g: %2.8lf\n",xx,yy,zz,edens,gamma);
 
   //value = cw->f2s(value,cw->f2spar);
-  return value;
+  return gamma*edens;
 
 }
 
@@ -89,11 +96,14 @@ int main(){
 
     // get phsd snapshot "table" (TH3D ROOT histogram)
     TFile *fICo = new TFile("phsd-ico_NUM30_t013.root","READ");
-    TH3D *hEdens = (TH3D*)fICo->Get("hEdensXYZ");
+    //TH3D *hEdens = (TH3D*)fICo->Get("hEdensXYZ");
+    TH3D *p[2];
+    p[0] = (TH3D*)fICo->Get("hEdensXYZ");
+    p[1] = (TH3D*)fICo->Get("hEdensXYZ");
   
     F.f= phsd_edens; 
     F.dim=D;
-    par.p=(void*)hEdens; 
+    par.p=(void*)p; 
     F.params=(void*)&par;
 
     if(split_type==0){
@@ -126,9 +136,9 @@ int main(){
     err=create_grid(D,&xp,xl,xu,dx,&Npoints);if(err!=0) return err;         
 
     cout << "ploting\n";
-    err=sph_dens(D,N,Npoints,xp,x,S,h,xl,xu,phsd_edens,"results/phsd_ico_plot.dat",hEdens); if(err!=0){ cout << err << endl; return err;}
+    err=sph_dens(D,N,Npoints,xp,x,S,h,xl,xu,phsd_edens,"results/phsd_ico_plot.dat",&p); if(err!=0){ cout << err << endl; return err;}
 
-    hEdens = 0;
+    //hEdens = 0;
     fICo->Close();
 
     delete x; delete u; delete S; 
