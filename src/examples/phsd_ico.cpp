@@ -40,32 +40,35 @@ double phsd_edens(double *x,size_t dim, void *par){
   double gamma = 1.;
   if(zz>zmin && zz<zmax) {
     edens = (double)(hEdens->Interpolate(xx,yy,zz));
-    gamma = hGamma->Interpolate(xx,yy,zz);
+    gamma = (double)(hGamma->Interpolate(xx,yy,zz));
   }
-  printf("x: %2.8lf   y: %2.8lf   z: %2.8lf     e: %2.8lf     g: %2.8lf\n",xx,yy,zz,edens,gamma);
+  //printf("x: %2.8lf   y: %2.8lf   z: %2.8lf     e: %2.8lf     g: %2.8lf\n",xx,yy,zz,edens,gamma);
 
   //value = cw->f2s(value,cw->f2spar);
   return gamma*edens;
 
 }
 
-//int phsd_velocity(double *x,size_t dim,void *par,double *u){
-//  if(dim!=2)
-//    return 1;
-//    
-//  int err;
-//  wparams *lpar=(wparams*)par;
-//  double *p = (double*)(lpar->p);
-//  double s0=p[0], q=p[1],tau=p[2];
-//  double r2,lambda,c;
-//  r2=x[0]*x[0]+x[1]*x[1];
-//  lambda = 1.+2.*q*q*(tau*tau+r2) + q*q*q*q*(tau*tau-r2)*(tau*tau-r2);
-//  c=(2.0*q*q*tau)/sqrt(lambda);
-//  u[0]=c*x[0];
-//  u[1]=c*x[1];
-//  
-//  return 0;
-//}
+int phsd_velocity(double *x,size_t dim,void *par,double *u){
+  if(dim!=3)
+    return 1;
+    
+  double xx = x[0];
+  double yy = x[1];
+  double zz = x[2];
+
+  int err;
+  wparams *lpar=(wparams*)par;
+  TH3D **p = (TH3D**)(lpar->p);
+  TH3D *v = 0;
+
+  for(int i=0;i<3;++i) {
+    v = *&p[i];
+    u[i] = (double)v->Interpolate(xx,yy,zz);
+  }
+  
+  return 0;
+}
 
 int null_velocity(double *x,size_t dim,void *par,double *u){
     int l;
@@ -88,22 +91,28 @@ int main(){
     double xl[D],xu[D],dx[D];
     double *xp,*x,*u,*S,s,dist,h=0.1;
     wparams par;
+    wparams vpar;
     vector <domain> dom;
     gsl_monte_function F;
     ifstream sphfile;
     ofstream plotfile;
     FILE *sphofile;
 
-    // get phsd snapshot "table" (TH3D ROOT histogram)
-    TFile *fICo = new TFile("phsd-ico_NUM30_t013.root","READ");
-    //TH3D *hEdens = (TH3D*)fICo->Get("hEdensXYZ");
+    // get phsd snapshot "tables" (TH3D ROOT histograms)
+    TFile *fICo = new TFile("phsd-ico_NUM1_t0.12.root","READ");
     TH3D *p[2];
     p[0] = (TH3D*)fICo->Get("hEdensXYZ");
-    p[1] = (TH3D*)fICo->Get("hEdensXYZ");
+    p[1] = (TH3D*)fICo->Get("hGammaXYZ");
+    par.p=(void*)p; 
+
+    TH3D *v[3];
+    v[0] = (TH3D*)fICo->Get("hBetaX");
+    v[1] = (TH3D*)fICo->Get("hBetaY");
+    v[2] = (TH3D*)fICo->Get("hBetaZ");
+    vpar.p=(void*)v;
   
     F.f= phsd_edens; 
     F.dim=D;
-    par.p=(void*)p; 
     F.params=(void*)&par;
 
     if(split_type==0){
@@ -126,7 +135,8 @@ int main(){
     err=clean_domain(dom);if(err!=0) return err;
 
     cout << "print\n";  
-    err=print_moving_sph(D,"results/phsd_ico.dat",dom,null_velocity,&par); if(err!=0) return err;
+    //err=print_moving_sph(D,"results/phsd_ico.dat",dom,null_velocity,&par); if(err!=0) return err;
+    err=print_moving_sph(D,"results/phsd_ico.dat",dom,phsd_velocity,&vpar); if(err!=0) return err;
 
     cout << "reading\n";
     err=sph_read("results/phsd_ico.dat",&D,&N,&x,&u,&S);if(err!=0) return err;
