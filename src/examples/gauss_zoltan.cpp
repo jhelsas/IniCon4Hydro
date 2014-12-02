@@ -95,7 +95,7 @@ int main(){
   /*  tau    fm     */ p[10] = 1.0;   
   
   F.f= gauss_e2s; F.dim=D;
-  wrp.f2s=e2s_zoltan; wrp.f2spar=NULL; 
+  wrp.f2s=e2s_qg; wrp.f2spar=NULL; 
   wrp.funpar=(void*)p; par.p=(void*)&wrp;
   F.params=(void*)&par;
   

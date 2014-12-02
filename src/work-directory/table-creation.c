@@ -307,7 +307,6 @@ int zoltan_eos_old(eosp *par, double *eos_t){
   return 0;
 }
 
-
 gsl_interp_accel *acc; // global variables
 gsl_spline *splT, *splp ,*sple ,*splcs2 ;
 
@@ -515,7 +514,7 @@ double e2s_zoltanRF(double s,void *params){
 const gsl_root_fsolver_type *rsT;
 gsl_root_fsolver *solver=NULL;
     
-double e2s_zoltan(double e, void *p){
+double e2s_zoltan_old(double e, void *p){
   static int call_count = 0;
   int status, iter, max_iter=100;
   double lsi = exp(-1.769049)-400.,lsf=exp(6.5)+400., ei=0.014186, ef=1707.554136;
@@ -566,22 +565,78 @@ double e2s_zoltan(double e, void *p){
   
   return s;
 }
+
+gsl_interp_accel *global_e2s_zoltan_acc; // global variables
+gsl_spline *global_e2s_zoltan_spls;
+
+double e2s_zoltan(double e,void *ep){
+  const int Np=83;
+  static int static_call_count=0;
+  double ez_table[83] = {0.01,0.26,0.51,0.76,1.01,1.26,1.51,1.76,2.01,
+                         2.26,2.51,2.76,3.01,3.26,3.51,3.76,4.01,4.26,
+                         4.51,4.76,5.00,7.00,9.00,11.00,13.00,15.00,
+                         17.0,19.0,21.0,23.0,25.0,27.0,29.0,31.0,33.0,
+                         35.0,37.0,39.0,41.0,43.0,45.00,52.5,60.0,
+                         67.5,75.0,82.5,90.0,97.5,105.0,112.50,120.0,
+                         127.5,135.0,142.5,150.0,157.5,165.0,172.5,
+                         180.0,187.5,195.0,202.5,210.0,217.5,225.0,
+                         232.5,240.0,247.5,255.0,262.5,270.0,277.5,
+                         285.0,292.5,300.0,307.5,315.0,322.5,330.0,
+                         337.5,345.0,352.5,360.0};
+  double sz_table[83] = {0.170524,1.994627,3.594898,5.091375,6.513195,
+                         7.878641,9.196814,10.474862,11.718528,
+                         12.932077,14.118870,15.281767,16.423192,
+                         17.545205,18.649566,19.737736,20.810858,
+                         21.869890,22.915678,23.948969,24.929789,
+                         32.741990,40.052551,46.997441,53.661896,
+                         60.097748,66.338096,72.408171,78.327858,
+                         84.113186,89.777319,95.331205,100.784158,
+                         106.144529,111.419782,116.616567,121.740296,
+                         126.796059,131.788246,136.720760,141.597103,
+                         159.433296,176.653015,193.352457,209.603689,
+                         225.462452,240.973086,256.171676,271.087773,
+                         285.747860,300.175215,314.389804,328.408896,
+                         342.247557,355.919018,369.434987,382.805883,
+                         396.041033,409.148822,422.136823,435.011905,
+                         447.780318,460.447772,473.019361,485.498318,
+                         497.886828,510.186980,522.400789,534.530511,
+                         546.577365,558.543514,570.430711,582.240652,
+                         593.974976,605.635268,617.223062,628.739843,
+                         640.187046,651.566062,662.878239,674.124883,
+                         685.307257,696.426589};
+  double s;
+  
+  if(e < ez_table[0] || e > ez_table[Np-1])
+    return (-1.0);  
+  
+  if(static_call_count==0){
+    global_e2s_zoltan_acc=gsl_interp_accel_alloc ();
+    global_e2s_zoltan_spls = gsl_spline_alloc (gsl_interp_cspline, 83);
+    gsl_spline_init (global_e2s_zoltan_spls, ez_table, sz_table, 83);
+    static_call_count+=1;
+  }
+  
+  s = gsl_spline_eval (global_e2s_zoltan_spls, e, global_e2s_zoltan_acc);
+  
+  return s;
+}
  
 int print_zoltan(){
   int err;
-  double lsi,lsf,logs,dls,z_table[5*18];
+  double lsi,s2,lsf,logs,dls,z_table[5*18];
   double e,de,ei=0.01,ef=360;
   const double hbarc=0.1973269718;
   SPHeq_particle par; 
   eosp point;
   FILE *dadosout;
-  
+  /*
   lsi=-1.769049;//log(e2s_qgphr(ei,NULL));
   lsf= 6.5;     //log(e2s_qgphr(ef,NULL));
     
   err= load_zoltan_table("zoltan.dat",z_table);
   if(err!=0){printf("zoltan table not loaded\n");return err;}
-  dls=0.0005; // ds = 0.0005*hbarc;
+  dls=0.0005; 
+  
   
   dadosout=fopen("results/zoltan_table.eos","w");  
   for(logs = lsi ; logs < lsf ; logs += dls){
@@ -599,17 +654,54 @@ int print_zoltan(){
             (pow(hbarc,3)*par.e_p)/pow(par.T,4),
             (pow(hbarc,3)*par.p_p)/pow(par.T,4));
   }
-  fclose(dadosout); 
+  fclose(dadosout); */
   
   de=0.01;
   dadosout = fopen("results/zoltan_e2s_comparison.dat","w");
+  for(e=ei;e<=ef;e+=de){
+    logs = e2s_zoltan_old(e,NULL); 
+    s2 = e2s_zoltan(e,NULL);
+    point.s = logs;
+    err=eos_zoltan(&point,NULL);
+    if(err!=0)
+      continue;
+    fprintf(dadosout,"%lf %lf %lf %lf\n",e,logs,s2,logs-s2);
+    //fprintf(dadosout,"%lf %lf \n",e,s2);
+  }
+  fclose(dadosout);
+  
+  /*
+    
+  de=0.25;
+  ei=0.01; ef=5.0;
+  dadosout = fopen("results/zoltan_e2s_array.dat","w");
   for(e=ei;e<=ef;e+=de){
     logs = e2s_zoltan(e,NULL);
     point.s = logs;
     err=eos_zoltan(&point,NULL); 
     if(err!=0)
       continue;
-    fprintf(dadosout,"%lf %lf %lf %lf %lf\n",logs,e,point.e,e-point.e,point.T);
+    fprintf(dadosout,"%lf %lf \n",e,logs);
+  }
+  de=2.0;
+  ei=ef; ef = 45.;
+  for(e=ei;e<=ef;e+=de){
+    logs = e2s_zoltan(e,NULL);
+    point.s = logs;
+    err=eos_zoltan(&point,NULL); 
+    if(err!=0)
+      continue;
+    fprintf(dadosout,"%lf %lf \n",e,logs);
+  }
+  de=7.5;
+  ei=ef+de; ef = 360.;
+  for(e=ei;e<=ef;e+=de){
+    logs = e2s_zoltan(e,NULL);
+    point.s = logs;
+    err=eos_zoltan(&point,NULL); 
+    if(err!=0)
+      continue;
+    fprintf(dadosout,"%lf %lf \n",e,logs);
   }
   fclose(dadosout);
   
@@ -618,6 +710,7 @@ int print_zoltan(){
   gsl_spline_free(splp); 
   gsl_spline_free(splcs2);
   gsl_interp_accel_free(acc); 
+  */
   
   if(solver!=NULL)
     gsl_root_fsolver_free (solver);
@@ -754,9 +847,9 @@ int main(){
   FILE *dadosout;
   
   err=print_zoltan();
-  err=print_pasi();
-  err=print_qg();
-  err=print_qgphr();
+  //err=print_pasi();
+  //err=print_qg();
+  //err=print_qgphr();
   
   if(eos_t!=NULL)
     free(eos_t);
