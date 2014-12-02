@@ -8,6 +8,7 @@
 
 // ROOT libraries
 #include "TFile.h"
+#include "TH2D.h"
 #include "TH3D.h"
 #include "TApplication.h"
 
@@ -21,50 +22,58 @@ double phsd_edens(double *x,size_t dim, void *par){
   if(err!=0)
     return 0.;
   
-  if(dim != 3) {
-    fprintf(stderr, "error: dim != 3\n");
+  if(dim != 2) {
+    fprintf(stderr, "error: dim != 2\n");
     abort();
   }
 
   double xx = x[0];
   double yy = x[1];
-  double zz = x[2];
+  //double zz = x[2];
 
   //TH3D *hTable = (TH3D*)(lpar->p);
-  TH3D **p = (TH3D**)(lpar->p);
-  TH3D *hEdens = *&p[0];
-  TH3D *hGamma = *&p[1];
-  double zmin = hEdens->GetZaxis()->GetBinCenter(1);
-  double zmax = hEdens->GetZaxis()->GetBinCenter(hEdens->GetNbinsZ());
+  TH2D **p = (TH2D**)(lpar->p);
+  TH2D *hEdens = *&p[0];
+  TH2D *hGamma = *&p[1];
   double edens = 0.;
   double gamma = 1.;
-  if(zz>zmin && zz<zmax) {
-    edens = (double)(hEdens->Interpolate(xx,yy,zz));
-    gamma = (double)(hGamma->Interpolate(xx,yy,zz));
+  double xmin = hEdens->GetXaxis()->GetBinCenter(1);
+  double xmax = hEdens->GetXaxis()->GetBinCenter(hEdens->GetNbinsX());
+  double ymin = hEdens->GetYaxis()->GetBinCenter(1);
+  double ymax = hEdens->GetYaxis()->GetBinCenter(hEdens->GetNbinsY());
+  if(xx>xmin && xx<xmax && yy>ymin && yy<ymax) {
+    edens = (double)(hEdens->Interpolate(xx,yy));
+    gamma = (double)(hGamma->Interpolate(xx,yy));
   }
   //printf("x: %2.8lf   y: %2.8lf   z: %2.8lf     e: %2.8lf     g: %2.8lf\n",xx,yy,zz,edens,gamma);
 
-  //value = cw->f2s(value,cw->f2spar);
-  return gamma*edens;
+  double s = gamma*edens;//e2s_zoltan(gamma*edens);
+
+  return s;
 
 }
 
 int phsd_velocity(double *x,size_t dim,void *par,double *u){
-  if(dim!=3)
+  if(dim!=2)
     return 1;
     
   double xx = x[0];
   double yy = x[1];
-  double zz = x[2];
 
   int err;
   wparams *lpar=(wparams*)par;
-  TH3D **p = (TH3D**)(lpar->p);
-  TH3D *v = 0;
+  TH2D **p = (TH2D**)(lpar->p);
+  TH2D *v = 0;
 
   for(int i=0;i<3;++i) {
     v = *&p[i];
-    u[i] = (double)v->Interpolate(xx,yy,zz);
+    double xmin = v->GetXaxis()->GetBinCenter(1);
+    double xmax = v->GetXaxis()->GetBinCenter(v->GetNbinsX());
+    double ymin = v->GetYaxis()->GetBinCenter(1);
+    double ymax = v->GetYaxis()->GetBinCenter(v->GetNbinsY());
+    if(xx>xmin && xx<xmax && yy>ymin && yy<ymax) {
+      u[i] = (double)v->Interpolate(xx,yy);
+    }
   }
   
   return 0;
@@ -82,10 +91,10 @@ int null_velocity(double *x,size_t dim,void *par,double *u){
 int main(){
 
     // this is needed to compile using ROOT libs
-    TApplication *a = new TApplication("a",0,0);
+    TApplication *app = new TApplication("app",0,0);
 
     // define function properties
-    int D=3,Ntri=6,split_type=0;
+    int D=2,Ntri=6,split_type=0;
     int l,err,Npoints,N;
     double cutoff=2,xi[D],xf[D],xv[Ntri*(D+1)*D];
     double xl[D],xu[D],dx[D];
@@ -99,16 +108,15 @@ int main(){
     FILE *sphofile;
 
     // get phsd snapshot "tables" (TH3D ROOT histograms)
-    TFile *fICo = new TFile("phsd-ico_NUM1_t0.12.root","READ");
-    TH3D *p[2];
-    p[0] = (TH3D*)fICo->Get("hEdensXYZ");
-    p[1] = (TH3D*)fICo->Get("hGammaXYZ");
+    TFile *fICo = new TFile("phsd-ico_NUM1_t0.61.root","READ");
+    TH2D *p[2];
+    p[0] = (TH2D*)(((TH3D*)fICo->Get("hEdensXYZ"))->Project3D("yx"));
+    p[1] = (TH2D*)(((TH3D*)fICo->Get("hGammaXY"))->Project3D("yx"));
     par.p=(void*)p; 
 
-    TH3D *v[3];
-    v[0] = (TH3D*)fICo->Get("hBetaX");
-    v[1] = (TH3D*)fICo->Get("hBetaY");
-    v[2] = (TH3D*)fICo->Get("hBetaZ");
+    TH2D *v[2];
+    v[0] = (TH2D*)(((TH3D*)fICo->Get("hBetaX"))->Project3D("yx"));
+    v[1] = (TH2D*)(((TH3D*)fICo->Get("hBetaY"))->Project3D("yx"));
     vpar.p=(void*)v;
   
     F.f= phsd_edens; 
@@ -135,8 +143,8 @@ int main(){
     err=clean_domain(dom);if(err!=0) return err;
 
     cout << "print\n";  
-    //err=print_moving_sph(D,"results/phsd_ico.dat",dom,null_velocity,&par); if(err!=0) return err;
-    err=print_moving_sph(D,"results/phsd_ico.dat",dom,phsd_velocity,&vpar); if(err!=0) return err;
+    err=print_moving_sph(D,"results/phsd_ico.dat",dom,null_velocity,&par); if(err!=0) return err;
+    //err=print_moving_sph(D,"results/phsd_ico.dat",dom,phsd_velocity,&vpar); if(err!=0) return err;
 
     cout << "reading\n";
     err=sph_read("results/phsd_ico.dat",&D,&N,&x,&u,&S);if(err!=0) return err;
