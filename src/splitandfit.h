@@ -105,6 +105,8 @@ int unit_hexagon(int Ntri,int D,double *xv);
 
 int unit2_hexagon(int Ntri,int D,double *xv);
 
+int R_hexagon(int Ntri,int D,double *xv,double R);
+
 int create_grid(int D,double **xpo,double *xl,double *xu,
                 double *dx,int *Np);
                 

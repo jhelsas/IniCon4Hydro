@@ -252,7 +252,7 @@ int domain_split(int D,double cutoff,vector <domain>& dom, gsl_monte_function F)
   id=0;
   while(id<dom.size()){
     
-    //cout << "id: " << id << endl;
+    cout << "id: " << id << endl;
     
     lpar->mdel=&(dom[id]);
     
@@ -749,6 +749,37 @@ int unit_hexagon(int Ntri,int D,double *xv){
   return 0;
 }
  
+int R_hexagon(int Ntri,int D,double *xv,double R){
+  if(Ntri!=6 || D!=2)
+    return -1;
+    
+  xv[0*(D+1)*D+0*D+0]=1.*R*R; xv[0*(D+1)*D+0*D+1]=0.*R;
+  xv[0*(D+1)*D+1*D+0]=.5*R; xv[0*(D+1)*D+1*D+1]=sqrt(3.)*R/2.;
+  xv[0*(D+1)*D+2*D+0]=0.*R; xv[0*(D+1)*D+2*D+1]=0.*R;
+  
+  xv[1*(D+1)*D+0*D+0]=.5*R; xv[1*(D+1)*D+0*D+1]=sqrt(3.)*R/2.;
+  xv[1*(D+1)*D+1*D+0]=-.5*R;xv[1*(D+1)*D+1*D+1]=sqrt(3.)*R/2.;
+  xv[1*(D+1)*D+2*D+0]=0.*R; xv[1*(D+1)*D+2*D+1]=0.*R;
+  
+  xv[2*(D+1)*D+0*D+0]=0.*R; xv[2*(D+1)*D+0*D+1]=0.*R;
+  xv[2*(D+1)*D+1*D+0]=-.5*R;xv[2*(D+1)*D+1*D+1]=sqrt(3.)*R/2.;
+  xv[2*(D+1)*D+2*D+0]=-1.*R;xv[2*(D+1)*D+2*D+1]=0.*R;
+  
+  xv[3*(D+1)*D+0*D+0]=-1.*R;xv[3*(D+1)*D+0*D+1]=0.*R;
+  xv[3*(D+1)*D+1*D+0]=-.5*R;xv[3*(D+1)*D+1*D+1]=-sqrt(3.)*R/2.;
+  xv[3*(D+1)*D+2*D+0]=0.*R; xv[3*(D+1)*D+2*D+1]=0.*R;
+  
+  xv[4*(D+1)*D+0*D+0]=-.5*R;xv[4*(D+1)*D+0*D+1]=-sqrt(3.)*R/2.;
+  xv[4*(D+1)*D+1*D+0]=.5*R; xv[4*(D+1)*D+1*D+1]=-sqrt(3.)*R/2.;
+  xv[4*(D+1)*D+2*D+0]=0.*R; xv[4*(D+1)*D+2*D+1]=0.*R;
+  
+  xv[5*(D+1)*D+0*D+0]=.5*R;xv[5*(D+1)*D+0*D+1]=-sqrt(3.)*R/2.;
+  xv[5*(D+1)*D+1*D+0]=1.*R;xv[5*(D+1)*D+1*D+1]=0.*R;
+  xv[5*(D+1)*D+2*D+0]=0.*R;xv[5*(D+1)*D+2*D+1]=0.*R;
+  
+  return 0;
+}
+
 int unit2_hexagon(int Ntri,int D,double *xv){
   if(Ntri!=6 || D!=2)
     return -1;

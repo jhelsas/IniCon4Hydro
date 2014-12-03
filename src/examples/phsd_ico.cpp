@@ -99,7 +99,7 @@ int main(){
     // define function properties
     int D=2,Ntri=6,split_type=0;
     int l,err,Npoints,N;
-    double cutoff=2,xi[D],xf[D],xv[Ntri*(D+1)*D];
+    double cutoff=100.,xi[D],xf[D],xv[Ntri*(D+1)*D];
     double xl[D],xu[D],dx[D];
     double *xp,*x,*u,*S,s,dist,h=0.1;
     wparams par;
@@ -133,7 +133,8 @@ int main(){
     }
     else if(split_type==1){
         cout << "unit\n";
-        err=unit2_hexagon(Ntri,D,xv);if(err!=0) return err;
+        //err=unit2_hexagon(Ntri,D,xv);if(err!=0) return err;
+        err = R_hexagon(Ntri,D,xv,7.);
 
         cout << "init\n";
         err=init_triangle(D,Ntri,xv,dom);if(err!=0) return err;
@@ -146,8 +147,8 @@ int main(){
     err=clean_domain(dom);if(err!=0) return err;
 
     cout << "print\n";  
-    err=print_moving_sph(D,"results/phsd_ico.dat",dom,null_velocity,&par); if(err!=0) return err;
-    //err=print_moving_sph(D,"results/phsd_ico.dat",dom,phsd_velocity,&vpar); if(err!=0) return err;
+    //err=print_moving_sph(D,"results/phsd_ico.dat",dom,null_velocity,&par); if(err!=0) return err;
+    err=print_moving_sph(D,"results/phsd_ico.dat",dom,phsd_velocity,&vpar); if(err!=0) return err;
 
     cout << "reading\n";
     err=sph_read("results/phsd_ico.dat",&D,&N,&x,&u,&S);if(err!=0) return err;
