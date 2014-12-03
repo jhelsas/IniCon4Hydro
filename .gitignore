@@ -9,8 +9,10 @@ gauss_e2s
 gauss_qgp
 gauss_whs
 gubser
+phsd_ico
 gubser_e2s
 example
+rotconfsol
 cubic_dome
 sph-dens
 plot_densities
