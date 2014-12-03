@@ -97,9 +97,9 @@ int main(){
     TApplication *app = new TApplication("app",0,0);
 
     // define function properties
-    int D=2,Ntri=6,split_type=0;
+    int D=2,Ntri=6,split_type=1;
     int l,err,Npoints,N;
-    double cutoff=100.,xi[D],xf[D],xv[Ntri*(D+1)*D];
+    double cutoff=0.2,xi[D],xf[D],xv[Ntri*(D+1)*D];
     double xl[D],xu[D],dx[D];
     double *xp,*x,*u,*S,s,dist,h=0.1;
     wparams par;
