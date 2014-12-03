@@ -153,7 +153,7 @@ int main(){
     cout << "reading\n";
     err=sph_read("results/phsd_ico.dat",&D,&N,&x,&u,&S);if(err!=0) return err;
 
-    for(l=0;l<2;l+=1) { xl[l]=-10.0; dx[l]=0.2; xu[l]=10.0+1.01*dx[l]; }
+    for(l=0;l<2;l+=1) { xl[l]=-10.0; dx[l]=0.5; xu[l]=10.0+1.01*dx[l]; }
 
     err=create_grid(D,&xp,xl,xu,dx,&Npoints);if(err!=0) return err;         
 
