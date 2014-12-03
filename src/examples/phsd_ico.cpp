@@ -5,6 +5,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf.h>
 #include "../splitandfit.h"
+#include "../conv_funct.h"
 
 // ROOT libraries
 #include "TFile.h"
@@ -46,10 +47,12 @@ double phsd_edens(double *x,size_t dim, void *par){
     gamma = (double)(hGamma->Interpolate(xx,yy));
   }
   //printf("x: %2.8lf   y: %2.8lf   z: %2.8lf     e: %2.8lf     g: %2.8lf\n",xx,yy,zz,edens,gamma);
+  if(edens<0.01)
+    return 0;
 
-  double s = gamma*edens;//e2s_zoltan(gamma*edens);
+  double s = e2s_zoltan(edens,0);
 
-  return s;
+  return s*gamma;
 
 }
 
@@ -65,7 +68,7 @@ int phsd_velocity(double *x,size_t dim,void *par,double *u){
   TH2D **p = (TH2D**)(lpar->p);
   TH2D *v = 0;
 
-  for(int i=0;i<3;++i) {
+  for(int i=0;i<2;++i) {
     v = *&p[i];
     double xmin = v->GetXaxis()->GetBinCenter(1);
     double xmax = v->GetXaxis()->GetBinCenter(v->GetNbinsX());
