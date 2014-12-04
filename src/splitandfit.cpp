@@ -619,22 +619,11 @@ int bc_coord(int D,double *r,double *lmb,domain mdel){
   }
   
   for(l=0;l<D;l+=1){
-    // B[l] = r[l] - mdel.xv[D*D+l];
     gsl_vector_set(global_bcc_b,l,r[l] - mdel.xv[D*D+l]);
     for(n=0;n<D;n+=1){
-      //T[l*D+n] = mdel.xv[n*D+l] - mdel.xv[D*D+l];
       gsl_matrix_set(global_bcc_m,l,n,mdel.xv[n*D+l] - mdel.xv[D*D+l]);
     }
   }
-  
-  //gsl_matrix_view m = gsl_matrix_view_array (T, D, D);
-  //gsl_vector_view b = gsl_vector_view_array (B, D);
-  //gsl_vector *x = gsl_vector_alloc (D);  
-  //gsl_permutation * p = gsl_permutation_alloc (D);
-  
-  //gsl_linalg_LU_decomp (&m.matrix, global_bc_coord_p, &s);
-  //gsl_linalg_LU_solve (&m.matrix, global_bc_coord_p, 
-  //                     &b.vector, global_bc_coord_x);
   
   gsl_linalg_LU_decomp(global_bcc_m,global_bcc_p,&s);
   gsl_linalg_LU_solve(global_bcc_m,global_bcc_p,
