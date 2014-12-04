@@ -606,6 +606,7 @@ gsl_vector *global_bcc_x = NULL;
 gsl_vector *global_bcc_b = NULL;
 gsl_matrix *global_bcc_m = NULL;
 gsl_permutation *global_bcc_p = NULL;
+
 /*
 int bc_coord(int D,double *r,double *lmb,domain mdel){
   int l,n,s;
@@ -624,6 +625,7 @@ int bc_coord(int D,double *r,double *lmb,domain mdel){
   
   for(l=0;l<D;l+=1){
     gsl_vector_set(global_bcc_b,l,r[l] - mdel.xv[D*D+l]);
+    //global_bcc_
     for(n=0;n<D;n+=1){
       gsl_matrix_set(global_bcc_m,l,n,mdel.xv[n*D+l] - mdel.xv[D*D+l]);
     }
@@ -637,7 +639,7 @@ int bc_coord(int D,double *r,double *lmb,domain mdel){
     lmb[l] = gsl_vector_get(global_bcc_x,l);
   
   return 0;
-}*/
+} */
 
 int bc_coord(int D,double *r,double *lmb,domain mdel){
   int l,n,s;
@@ -664,8 +666,7 @@ int bc_coord(int D,double *r,double *lmb,domain mdel){
   
   return 0;
 }
- 
- 
+  
 int bc_check(int D,double *lmb){
   int l;
   double Lmb;
