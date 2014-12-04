@@ -326,6 +326,12 @@ int domain_split(int D,double cutoff,vector <domain>& dom, gsl_monte_function F)
   
   gsl_monte_miser_free (s_m);
   gsl_rng_free (r);
+  if(dom[0].type==1){
+    gsl_permutation_free (global_bcc_p);
+    gsl_vector_free (global_bcc_b);
+    gsl_vector_free (global_bcc_x);
+    gsl_matrix_free (global_bcc_m);
+  }
   
   return 0;
 }
@@ -636,10 +642,6 @@ int bc_coord(int D,double *r,double *lmb,domain mdel){
   
   for(l=0;l<D;l+=1)
     lmb[l] = gsl_vector_get(global_bcc_x,l);
-  //gsl_permutation_free (p);
-  //gsl_vector_free (x);
-  //gsl_vector_free (b);
-  //gsl_matrix_free (m);
   
   return 0;
 }
