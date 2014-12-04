@@ -111,7 +111,7 @@ int main(){
     FILE *sphofile;
 
     // get phsd snapshot "tables" (TH3D ROOT histograms)
-    TFile *fICo = new TFile("phsd-ico_NUM1_t0.61.root","READ");
+    TFile *fICo = new TFile("phsd-ico_NUM30_t013.root","READ");
     TH2D *p[2];
     p[0] = (TH2D*)(((TH3D*)fICo->Get("hEdensXYZ"))->Project3D("yx"));
     p[1] = (TH2D*)(((TH3D*)fICo->Get("hGammaXY"))->Project3D("yx"));

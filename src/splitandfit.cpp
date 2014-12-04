@@ -238,7 +238,7 @@ int domain_split(int D,double cutoff,vector <domain>& dom, gsl_monte_function F)
   unsigned int id;
   int i,err,l;
   double xl[D],xu[D],S,erd;
-  size_t calls = 500000,scalls=5000,mcalls=50000;
+  size_t lcalls=500,scalls=5000,mcalls=50000,calls = 500000;  
   const gsl_rng_type *T;
   wparams *lpar;
   gsl_rng *r;
@@ -252,7 +252,7 @@ int domain_split(int D,double cutoff,vector <domain>& dom, gsl_monte_function F)
   id=0;
   while(id<dom.size()){
     
-    cout << "id: " << id << endl;
+    //cout << "id: " << id << endl;
     
     lpar->mdel=&(dom[id]);
     
@@ -275,11 +275,37 @@ int domain_split(int D,double cutoff,vector <domain>& dom, gsl_monte_function F)
         }
       }
     }
-    
+    /*
+     * gauss_e2s with 1./20. cutoff on entropy
+     * about 165 k SPH particles produced
+     * Timings: 
+     *   original time:      4m14 (scalls,calls)
+     *   intermidiate time:  3m08 (scalls, mcals, calls)
+     *   optimized time:     1m05 (lcalls, scalls, mcalls, calls)
+     */
+     
+    /* 
     gsl_monte_miser_integrate(&F,xl,xu,D,scalls,r,s_m,&S,&erd);
-    if(erd>cutoff*0.01){
+    if(erd>cutoff*0.01) // hardcoded
       gsl_monte_miser_integrate(&F,xl,xu,D,calls,r,s_m,&S,&erd);
-    }
+         
+    gsl_monte_miser_integrate(&F,xl,xu,D,scalls,r,s_m,&S,&erd);
+    if(erd>cutoff*0.01){ // hardcoded
+      gsl_monte_miser_integrate(&F,xl,xu,D,mcalls,r,s_m,&S,&erd);
+      if(erd>cutoff*0.01) // hardcoded
+        gsl_monte_miser_integrate(&F,xl,xu,D,calls,r,s_m,&S,&erd);
+    } */
+     
+    
+    gsl_monte_miser_integrate(&F,xl,xu,D,lcalls,r,s_m,&S,&erd);
+    if(erd>cutoff*0.01){ // hardcoded
+      gsl_monte_miser_integrate(&F,xl,xu,D,scalls,r,s_m,&S,&erd);
+      if(erd>cutoff*0.01){ // hardcoded
+        gsl_monte_miser_integrate(&F,xl,xu,D,mcalls,r,s_m,&S,&erd);
+        if(erd>cutoff*0.01) // hardcoded
+          gsl_monte_miser_integrate(&F,xl,xu,D,calls,r,s_m,&S,&erd);
+      }
+    } 
     
     dom[id].S=S;
     
