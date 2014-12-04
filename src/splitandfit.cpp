@@ -275,9 +275,10 @@ int domain_split(int D,double cutoff,vector <domain>& dom, gsl_monte_function F)
         }
       }
     }
+    
     /*
      * gauss_e2s with 1./20. cutoff on entropy
-     * about 165 k SPH particles produced
+     * around 165 k SPH particles produced
      * Timings: 
      *   original time:      4m14 (scalls,calls)
      *   intermidiate time:  3m08 (scalls, mcals, calls)
@@ -591,28 +592,54 @@ int bc_simplex_split(int D,vector <domain> & dom,int n){
  * the domain or not
  */
 
+gsl_vector *global_bcc_x;
+gsl_vector *global_bcc_b;
+gsl_matrix *global_bcc_m;
+gsl_permutation *global_bcc_p;
+
 int bc_coord(int D,double *r,double *lmb,domain mdel){
   int l,n,s;
+  static int static_call_count=0;
   double T[D*D],B[D];
   if(mdel.type!=1)
     return -1;
   
-  for(l=0;l<D;l+=1){
-    B[l] = r[l] - mdel.xv[D*D+l];
-    for(n=0;n<D;n+=1)
-      T[l*D+n] = mdel.xv[n*D+l] - mdel.xv[D*D+l];
+  if(static_call_count==0){
+    global_bcc_x = gsl_vector_alloc(D);
+    global_bcc_b = gsl_vector_alloc(D);
+    global_bcc_m = gsl_matrix_alloc(D,D);
+    global_bcc_p = gsl_permutation_alloc(D);
+    static_call_count+=1;
   }
   
-  gsl_matrix_view m = gsl_matrix_view_array (T, D, D);
-  gsl_vector_view b = gsl_vector_view_array (B, D);
-  gsl_vector *x = gsl_vector_alloc (D);  
-  gsl_permutation * p = gsl_permutation_alloc (D);
-  gsl_linalg_LU_decomp (&m.matrix, p, &s);
-  gsl_linalg_LU_solve (&m.matrix, p, &b.vector, x);
+  for(l=0;l<D;l+=1){
+    // B[l] = r[l] - mdel.xv[D*D+l];
+    gsl_vector_set(global_bcc_b,l,r[l] - mdel.xv[D*D+l]);
+    for(n=0;n<D;n+=1){
+      //T[l*D+n] = mdel.xv[n*D+l] - mdel.xv[D*D+l];
+      gsl_matrix_set(global_bcc_m,l,n,mdel.xv[n*D+l] - mdel.xv[D*D+l]);
+    }
+  }
+  
+  //gsl_matrix_view m = gsl_matrix_view_array (T, D, D);
+  //gsl_vector_view b = gsl_vector_view_array (B, D);
+  //gsl_vector *x = gsl_vector_alloc (D);  
+  //gsl_permutation * p = gsl_permutation_alloc (D);
+  
+  //gsl_linalg_LU_decomp (&m.matrix, global_bc_coord_p, &s);
+  //gsl_linalg_LU_solve (&m.matrix, global_bc_coord_p, 
+  //                     &b.vector, global_bc_coord_x);
+  
+  gsl_linalg_LU_decomp(global_bcc_m,global_bcc_p,&s);
+  gsl_linalg_LU_solve(global_bcc_m,global_bcc_p,
+                      global_bcc_b,global_bcc_x);
+  
   for(l=0;l<D;l+=1)
-    lmb[l] = gsl_vector_get(x,l);
-  gsl_permutation_free (p);
-  gsl_vector_free (x);
+    lmb[l] = gsl_vector_get(global_bcc_x,l);
+  //gsl_permutation_free (p);
+  //gsl_vector_free (x);
+  //gsl_vector_free (b);
+  //gsl_matrix_free (m);
   
   return 0;
 }

@@ -6,6 +6,7 @@
 #include <vector>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_monte.h>
+#include <gsl/gsl_linalg.h>
 #include <gsl/gsl_monte_plain.h>
 #include <gsl/gsl_monte_miser.h>
 #include <gsl/gsl_monte_vegas.h>
@@ -28,6 +29,10 @@ typedef struct wparams{
   void *p;
 } wparams;
 
+extern gsl_vector *global_bcc_x;
+extern gsl_vector *global_bcc_b;
+extern gsl_matrix *global_bcc_m;
+extern gsl_permutation *global_bcc_p;
 
 /*******************************************************
  * Domain Related Functions  
