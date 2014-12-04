@@ -649,8 +649,8 @@ int bc_check(int D,double *lmb){
   double Lmb;
   if(D<=0)
     return -1;
-  Lmb=0.;
-  for(l=0;l<D;l+=1){
+  Lmb=lmb[0];
+  for(l=1;l<D;l+=1){
     Lmb+=lmb[l];
     if(lmb[l]<0 || lmb[l]>1)
       return 1;
