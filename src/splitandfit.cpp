@@ -327,10 +327,14 @@ int domain_split(int D,double cutoff,vector <domain>& dom, gsl_monte_function F)
   gsl_monte_miser_free (s_m);
   gsl_rng_free (r);
   if(dom[0].type==1){
-    gsl_permutation_free (global_bcc_p);
-    gsl_vector_free (global_bcc_b);
-    gsl_vector_free (global_bcc_x);
-    gsl_matrix_free (global_bcc_m);
+    if(global_bcc_p!=NULL);
+      gsl_permutation_free (global_bcc_p);
+    if(global_bcc_b!=NULL);
+      gsl_vector_free (global_bcc_b);
+    if(global_bcc_x!=NULL);
+      gsl_vector_free (global_bcc_x);
+    if(global_bcc_m!=NULL);
+      gsl_matrix_free (global_bcc_m);
   }
   
   return 0;
@@ -598,11 +602,11 @@ int bc_simplex_split(int D,vector <domain> & dom,int n){
  * the domain or not
  */
 
-gsl_vector *global_bcc_x;
-gsl_vector *global_bcc_b;
-gsl_matrix *global_bcc_m;
-gsl_permutation *global_bcc_p;
-
+gsl_vector *global_bcc_x = NULL;
+gsl_vector *global_bcc_b = NULL;
+gsl_matrix *global_bcc_m = NULL;
+gsl_permutation *global_bcc_p = NULL;
+/*
 int bc_coord(int D,double *r,double *lmb,domain mdel){
   int l,n,s;
   static int static_call_count=0;
@@ -633,7 +637,34 @@ int bc_coord(int D,double *r,double *lmb,domain mdel){
     lmb[l] = gsl_vector_get(global_bcc_x,l);
   
   return 0;
+}*/
+
+int bc_coord(int D,double *r,double *lmb,domain mdel){
+  int l,n,s;
+  double T[D*D],B[D];
+  if(mdel.type!=1)
+    return -1;
+  
+  for(l=0;l<D;l+=1){
+    B[l] = r[l] - mdel.xv[D*D+l];
+    for(n=0;n<D;n+=1)
+      T[l*D+n] = mdel.xv[n*D+l] - mdel.xv[D*D+l];
+  }
+  
+  gsl_matrix_view m = gsl_matrix_view_array (T, D, D);
+  gsl_vector_view b = gsl_vector_view_array (B, D);
+  gsl_vector *x = gsl_vector_alloc (D);  
+  gsl_permutation * p = gsl_permutation_alloc (D);
+  gsl_linalg_LU_decomp (&m.matrix, p, &s);
+  gsl_linalg_LU_solve (&m.matrix, p, &b.vector, x);
+  for(l=0;l<D;l+=1)
+    lmb[l] = gsl_vector_get(x,l);
+  gsl_permutation_free (p);
+  gsl_vector_free (x);
+  
+  return 0;
 }
+ 
  
 int bc_check(int D,double *lmb){
   int l;
