@@ -30,9 +30,9 @@
  */
 
 int BW_traceDefect(double T,void *params){
-  const double h0,h1,h2;
-  const double f0,f1,f2;
-  const double g1,g2;
+  const double h0=0.1396,h1=-0.18,h2=0.035;
+  const double f0=1.05,f1=6.39,f2=-4.72;
+  const double g1=-0.92,g2=0.57;
   double I=0.,t=(T/0.2); /* t= T/200 MeV*/
   
   I = gsl_sf_lnsinh(f1*t+f2)-gsl_sf_lncosh(f1*t+f2);
@@ -41,6 +41,17 @@ int BW_traceDefect(double T,void *params){
   I *= gsl_sf_exp(-h1/t-h2/(t*t));
   
   return I;
+}
+
+double BW_dIdt(double T,void *params){
+  const double h0=0.1396,h1=-0.18,h2=0.035;
+  const double f0=1.05,f1=6.39,f2=-4.72;
+  const double g1=-0.92,g2=0.57;
+  double dIdt=0.,F0;
+  
+  dIdt = ;
+  
+  return dIdt;  
 }
 
 int BW_pressure(double T,void *params){
@@ -110,10 +121,6 @@ int BW_entropyDen(double T,void *params){
   energyDens=3.0*pressure+I;  
   
   return energyDens+pressure;
-}
-
-int BW_soundSpeed(){
-  
 }
 
 int main(){
