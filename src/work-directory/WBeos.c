@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include <stdlib.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
@@ -43,15 +44,19 @@ int BW_traceDefect(double T,void *params){
   return I;
 }
 
-double BW_dIdt(double T,void *params){
+double BW_dIdT(double T,void *params){
   const double h0=0.1396,h1=-0.18,h2=0.035;
   const double f0=1.05,f1=6.39,f2=-4.72;
   const double g1=-0.92,g2=0.57;
-  double dIdt=0.,F0;
+  double dIdt=0.,F0,t=(T/0.2);
   
-  dIdt = ;
+  dIdt = h0+(f0*tanh(f1*t+f2))/(1.+g1*t+g2*t*t);
+  dIdt *= h1/t+h2/(t*t);
+  dIdt += (f0*f1*sech(f1*t+f2)*sech(f1*t+f2));
+  dIdt -= (f0*(tanh(f1*t+f2)+1.)*(g1+g2*t))/(1+g1*t+g2*t*t);
+  dIdt *= exp(-h1/t-h2/(t*t));
   
-  return dIdt;  
+  return dIdt/(0.2*0.2*0.2*0.2*0.2);  
 }
 
 int BW_pressure(double T,void *params){
@@ -126,6 +131,8 @@ int BW_entropyDen(double T,void *params){
 int main(){
   int i;
   double T,Tmin,Tmax,dT;
+  double eT4,pT4,sT3, cs2;
+  
   
   return 0;
 }
