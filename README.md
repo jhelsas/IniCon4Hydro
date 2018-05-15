@@ -4,7 +4,7 @@
 ## Colaborators: Takeshi Kodama, Tomoi Koide
 
 Related publications: 
-   - * Souza, R. D. ; Kodama, T. ; Koide, T. ; Gaspar Elsas, J. H. C. ; Bratkovskaya, E.L. ; Cassing, W. .
+   - Souza, R. D. ; Kodama, T. ; Koide, T. ; Gaspar Elsas, J. H. C. ; Bratkovskaya, E.L. ; Cassing, W. .
 Evaluating the collective properties of heavy-ion collisions from microscopic dynamics using the PHSD
 model. In: The International Workshop on Collectivity in Relativistic Heavy Ion Collisions, 2015,
 Kolymbari. PROCEEDINGS of The International Workshop on Collectivity in Relativistic Heavy Ion
