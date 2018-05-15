@@ -1,4 +1,12 @@
-Initial Condition Generator for Relativistic Hydro
+# Initial Condition Generator for Relativistic Hydro
+
+## Authors: José Hugo Elsas, Rafael Derradi ; Colaborators: Takeshi Kodama, Tomoi Koide
+
+### Related publications: Souza, R. D. ; Kodama, T. ; Koide, T. ; Gaspar Elsas, J. H. C. ; Bratkovskaya, E.L. ; Cassing, W. .
+Evaluating the collective properties of heavy-ion collisions from microscopic dynamics using the PHSD
+model. In: The International Workshop on Collectivity in Relativistic Heavy Ion Collisions, 2015,
+Kolymbari. PROCEEDINGS of The International Workshop on Collectivity in Relativistic Heavy Ion
+Collisions. Barcelona: Edited by L. Bravina, V.K. Magas, A. Feijoo, 2014. v. 01. p. 111-110.
 
 - splitandfit .cpp and .h: Domain Splitting Algorithm implementation based on near equal integration value 
                            of each subdomain for the provided density function. Alternative algorithms will be Implemented in the future.
