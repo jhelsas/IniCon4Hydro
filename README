@@ -1,4 +1,4 @@
-Initial Condition Generator for Hydro
+Initial Condition Generator for Relativistic Hydro
 
 - splitandfit .cpp and .h: Domain Splitting Algorithm implementation based on near equal integration value 
                            of each subdomain for the provided density function. Alternative algorithms will be Implemented in the future.
